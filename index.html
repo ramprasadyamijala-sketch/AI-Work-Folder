@@ -24,8 +24,18 @@
 <meta property="twitter:title" content="Sanātana Dharma Scriptural Archive & AI Copilot">
 <meta property="twitter:description" content="Explore 4,460+ sacred Hindu scriptures with instant search, commentaries, and an integrated AI Copilot.">
 
-<!-- Favicon -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🕉️</text></svg>">
+<!-- Favicon & PWA App Icons -->
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="manifest" href="manifest.json">
+
+<!-- iOS Web App Meta Tags -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sanatana Wiki">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=Yatra+One&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
@@ -3026,6 +3036,13 @@ function formatMarkdown(md) {
     .replace(/\n\n/gim, '</p><p>')
     .replace(/\n/gim, '<br>');
   return '<p>' + html + '</p>';
+}
+
+// Register Service Worker for PWA (iOS / Android / Desktop)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
 }
 
 window.addEventListener('DOMContentLoaded', init);
