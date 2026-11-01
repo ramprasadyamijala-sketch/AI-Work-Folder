@@ -1,0 +1,38 @@
+# Dependencies and package managers
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+
+# Environment and secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# VS Code extension packages
+*.vsix
+
+# Large PDF documents (if tracking via git, keep PDFs in GCS/S3/external storage)
+*.pdf
+

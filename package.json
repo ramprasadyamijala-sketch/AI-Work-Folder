@@ -1,0 +1,26 @@
+{
+  "name": "sanatana-dharma-scriptural-archive",
+  "version": "1.0.0",
+  "description": "Sanātana Dharma Scriptural Archive & AI Copilot Web Application",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -p 3000 .",
+    "dev": "serve -p 3000 .",
+    "serve:py": "python3 -m http.server 3000"
+  },
+  "keywords": [
+    "scriptures",
+    "archive",
+    "ai-copilot",
+    "sanatana-dharma",
+    "upanishads",
+    "vedas",
+    "puranas"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
+
