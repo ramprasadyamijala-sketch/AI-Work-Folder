@@ -246,3 +246,4 @@ This guide outlines the exact, step-by-step checklist of what to do **first vs. 
 | **7** | Add Mobile PWA (iOS/Android) | Add `manifest.json`, `sw.js`, icons & Apple meta tags |
 | **8** | Add SEO & Social share cards | Add `og:title`, `og:description`, `twitter:card` |
 | **9** | Test on mobile device | Open Safari ➔ "Add to Home Screen" ➔ Done! |
+
