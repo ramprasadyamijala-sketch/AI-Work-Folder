@@ -6,7 +6,7 @@
 <title>Sanātana Dharma Scriptural Archive & AI Copilot | सनातन शास्त्र भाण्डार</title>
 
 <!-- SEO & Metadata -->
-<meta name="description" content="Explore 4,460+ sacred Hindu scriptures (108 Upanishads, Vedas, Puranas, Pancharatna Gita, Stutis, Vivekachudamani, Ramayana, Ashtavakra Gita) with an integrated AI Copilot.">
+<meta name="description" content="Explore sacred Hindu scriptures (108 Upanishads, Vedas, Puranas, Pancharatna Gita, Stutis, Vivekachudamani, Ramayana, Ashtavakra Gita) with classical Sanskrit commentaries and an integrated AI Copilot.">
 <meta name="keywords" content="Sanatana Dharma, Hindu Scriptures, Upanishads, Vedas, Puranas, Gita Press, Sanskrit Bhashya, Adi Shankaracharya, Ramayana, Ashtavakra Gita, AI Copilot">
 <meta name="author" content="Sanātana Dharma Archive">
 <meta name="theme-color" content="#0b0f14">
@@ -15,14 +15,14 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://monumental-marzipan-90fed6.netlify.app/">
 <meta property="og:title" content="Sanātana Dharma Scriptural Archive & AI Copilot | सनातन शास्त्र भाण्डार">
-<meta property="og:description" content="Digital archive of 4,460+ sacred Hindu scriptures with instant search, Sanskrit commentaries, English translations, and an integrated AI Copilot.">
+<meta property="og:description" content="Living digital archive of sacred Hindu scriptures with instant search, Sanskrit commentaries, English translations, and an integrated AI Copilot.">
 <meta property="og:site_name" content="Sanātana Dharma Archive">
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary">
 <meta property="twitter:url" content="https://monumental-marzipan-90fed6.netlify.app/">
 <meta property="twitter:title" content="Sanātana Dharma Scriptural Archive & AI Copilot">
-<meta property="twitter:description" content="Explore 4,460+ sacred Hindu scriptures with instant search, commentaries, and an integrated AI Copilot.">
+<meta property="twitter:description" content="Explore sacred Hindu scriptures with instant search, commentaries, and an integrated AI Copilot.">
 
 <!-- Favicon & PWA App Icons -->
 <link rel="icon" href="icon-192.png" type="image/png">
@@ -1229,11 +1229,11 @@ body.copilot-open.copilot-expanded .app-container {
   <div class="shloka-invocation">ॐ असतो मा सद्गमय । तमसो मा ज्योतिर्गमय । मृत्योर्माऽमृतं गमय ॥</div>
   <h1 class="main-title">SANĀTANA DHARMA SCRIPTURAL ARCHIVE</h1>
   <div style="font-family: 'Cinzel', serif; font-size: 18px; color: var(--gold); margin-bottom: 8px;">सनातन शास्त्र भाण्डार</div>
-  <p class="main-subtitle">A digital encyclopedia and offline library of 4,466 sacred Hindu scriptures, classical Sanskrit commentaries (Bhāṣyas), Upanishads, Vedas, Puranas, and Stutis.</p>
+  <p class="main-subtitle">A comprehensive digital encyclopedia and living scriptural archive of sacred Hindu scriptures, classical Sanskrit commentaries (Bhāṣyas), Upanishads, Vedas, Puranas, and Stutis.</p>
 
   <div class="stats-grid">
-    <div class="stat-pill">📚 Total Sacred Texts: <b>4,466 PDFs</b></div>
-    <div class="stat-pill">💾 Library Size: <b>8.10 GB</b></div>
+    <div class="stat-pill" id="stat-total-texts">📚 Total Sacred Texts: <b>Loading...</b></div>
+    <div class="stat-pill" id="stat-total-size">💾 Archive Size: <b>Loading...</b></div>
     <div class="stat-pill">🏛️ Core Canonical Categories: <b>9</b></div>
     <div class="stat-pill">🤖 <b>AI Scripture Copilot Active</b></div>
   </div>
@@ -1245,7 +1245,7 @@ body.copilot-open.copilot-expanded .app-container {
   <nav class="nav-tabs">
     <button class="nav-tab active" onclick="switchTab('highlights')">🌟 Canonical Highlights</button>
     <button class="nav-tab" onclick="switchTab('explorer')">📚 Category Explorer (9)</button>
-    <button class="nav-tab" onclick="switchTab('all-texts')">🔍 Live Search All (4,466)</button>
+    <button class="nav-tab" id="nav-tab-all" onclick="switchTab('all-texts')">🔍 Live Search All</button>
     <button class="nav-tab" onclick="switchTab('stutis')">🔤 Stotra Index (Shiva & Devi)</button>
   </nav>
 
@@ -1283,7 +1283,7 @@ body.copilot-open.copilot-expanded .app-container {
         </div>
       </div>
       <div class="filter-chips" id="filter-chips">
-        <button class="chip active" onclick="setFilter('all')">All Texts (4,466)</button>
+        <button class="chip active" id="chip-all" onclick="setFilter('all')">All Texts</button>
         <button class="chip" onclick="setFilter('01_Upanishads')">Upanishads (256)</button>
         <button class="chip" onclick="setFilter('02_Vedas')">Vedas (96)</button>
         <button class="chip" onclick="setFilter('03_Puranas')">Puranas (130)</button>
@@ -1298,7 +1298,7 @@ body.copilot-open.copilot-expanded .app-container {
 
     <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; padding: 12px 18px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <span id="results-count" style="font-size: 13px; color: var(--text-muted);">Showing 1-50 of 4,466 texts</span>
+        <span id="results-count" style="font-size: 13px; color: var(--text-muted);">Loading sacred texts...</span>
         <div style="display: flex; gap: 8px;">
           <select id="sort-select" onchange="handleSort()" style="background: var(--bg-card); color: #fff; border: 1px solid var(--border); padding: 4px 8px; border-radius: 4px; font-size: 12px;">
             <option value="featured">Sort by: Recommended</option>
@@ -1499,6 +1499,20 @@ const HIGHLIGHT_KEYS = [
 ];
 
 function init() {
+  // Dynamically calculate library stats
+  const totalCount = ALL_ITEMS.length;
+  const totalBytes = ALL_ITEMS.reduce((sum, item) => sum + (item.size || 0), 0);
+  const totalGB = (totalBytes / (1024 * 1024 * 1024)).toFixed(1);
+
+  const statTexts = document.getElementById('stat-total-texts');
+  if (statTexts) statTexts.innerHTML = `📚 Total Sacred Texts: <b>${totalCount.toLocaleString()} PDFs</b>`;
+  const statSize = document.getElementById('stat-total-size');
+  if (statSize) statSize.innerHTML = `💾 Archive Size: <b>${totalGB} GB</b>`;
+  const tabAll = document.getElementById('nav-tab-all');
+  if (tabAll) tabAll.textContent = `🔍 Live Search All (${totalCount.toLocaleString()})`;
+  const chipAll = document.getElementById('chip-all');
+  if (chipAll) chipAll.textContent = `All Texts (${totalCount.toLocaleString()})`;
+
   renderHighlights();
   renderExplorer();
   renderTable();
@@ -1903,7 +1917,7 @@ function initCopilot() {
   addCopilotMessage('assistant', `
     **Namaste! I am your Sanātana Copilot.** 🙏
     
-    I am your personal scholar and librarian for this collection of **4,466 sacred Hindu scriptures** (8.1 GB).
+    I am your personal scholar and librarian for this living digital archive of sacred Hindu scriptures and classical Sanskrit commentaries.
     
     *I maintain ongoing conversation memory across your questions—you can ask follow-ups, request deeper theological breakdowns, or compare scriptures.*
     
@@ -1912,7 +1926,7 @@ function initCopilot() {
     - 🏹 **Explain esoteric inner meanings** (*The Adhyatmic allegory of Ramayana*)
     - ⚡ **Explore non-dual freedom** (*Ashtavakra Gita & Vivekachudamani*)
     - 💎 **Study the 5 jewels of Pancharatna Gita & 108 Upanishads**
-    - 🔱 **Find any of the 3,960+ Shiva & Devi Stotras, Sahasranamas, and Kavachas**
+    - 🔱 **Find thousands of Shiva & Devi Stotras, Sahasranamas, and Kavachas**
     
     Click any suggestion below or type your contemplation!
   `, [], true);
@@ -2433,8 +2447,8 @@ The classical tradition affirms that Sage Vālmīki did not create an artificial
 
 ---
 
-#### 📖 Original Sanskrit Manuscripts in Your Offline Library:
-You can verify and read these complete texts directly from your personal collection:
+#### 📖 Original Sanskrit Manuscripts in the Archive:
+You can verify and read these complete texts directly from the collection:
     `;
     return { text: answer, cards: ramaCards };
   }
@@ -2878,7 +2892,7 @@ Here are the texts matching your inquiry:
   let answer = `
 ### 🕉️ Inquiries into the Infinite
 
-I have explored your library of **4,466 sacred texts** for **"${escapeHtml(query)}"**. 
+I have explored the scriptural archive for **"${escapeHtml(query)}"**. 
 
 You are invited to contemplate any of these foundational spiritual themes:
 - **"What is the first Slokha of Mandukya Upanishad?"** *(OM and the 4 states of consciousness)*
@@ -2910,10 +2924,10 @@ async function callGeminiAPI(query) {
 
   const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
-  const systemInstruction = `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic collection of 4,466 Hindu scriptural PDFs.
+  const systemInstruction = `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
 Speak with profound theological depth, spiritual reverence, contemplative majesty, and metaphysical clarity—never in dry FAQ bullet points or shallow summaries.
 Draw deeply upon Shruti (Vedas & Upanishads), Smriti (Bhagavad Gita & Puranas), Itihasa (Valmiki Ramayana), and Acharya Bhashyas.
-Quote authentic Sanskrit shlokas and mantras in Devanagari with English translations, explain their esoteric inner significance (Adhyatmic rahasya), illuminate the philosophical nuances (Advaita, Vishishtadvaita, Sankhya), and cite matching documents from the user's local collection with their relative paths.`;
+Quote authentic Sanskrit shlokas and mantras in Devanagari with English translations, explain their esoteric inner significance (Adhyatmic rahasya), illuminate the philosophical nuances (Advaita, Vishishtadvaita, Sankhya), and cite matching documents from the collection with their relative paths.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
@@ -2929,7 +2943,7 @@ Quote authentic Sanskrit shlokas and mantras in Devanagari with English translat
   geminiContents.push({
     role: "user",
     parts: [{
-      text: `Relevant Local Library Documents for Reference:\n${contextStr}\n\nCurrent Question: ${query}\n\n(Please build upon our preceding conversation thread, cite specific scriptures from the local library context where relevant, quote Sanskrit verses in Devanagari, and maintain an authentic, spiritually elevated theological tone.)`
+      text: `Relevant Archive Documents for Reference:\n${contextStr}\n\nCurrent Question: ${query}\n\n(Please build upon our preceding conversation thread, cite specific scriptures from the archive context where relevant, quote Sanskrit verses in Devanagari, and maintain an authentic, spiritually elevated theological tone.)`
     }]
   });
   const body = {
@@ -2970,7 +2984,7 @@ async function callOllamaAPI(query) {
       messages: [
         { role: "system", content: `${systemInstruction}
 
-Local Library Documents Context:
+Archive Documents Context:
 ${contextStr}` },
         ...copilotHistory.slice(-10).map(m => ({
           role: m.role === 'user' ? 'user' : 'assistant',
@@ -3005,7 +3019,7 @@ async function callOpenAICompatibleAPI(query) {
       messages: [
         { role: "system", content: `${systemInstruction}
 
-Local Library Documents Context:
+Archive Documents Context:
 ${contextStr}` },
         ...copilotHistory.slice(-10).map(m => ({
           role: m.role === 'user' ? 'user' : 'assistant',
