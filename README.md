@@ -1,12 +1,12 @@
 # Sanātana Dharma Scriptural Archive & AI Copilot | सनातन शास्त्र भाण्डार
 
-A modern, responsive web application and digital archive cataloging 4,460+ sacred Hindu scriptures (Upanishads, Vedas, Puranas, Pancharatna Gita, Shiva & Devi Stutis, Vivekachudamani, Valmiki Ramayana, and Ashtavakra Gita) with an integrated AI Copilot.
+A modern, responsive web application and living digital archive of sacred Hindu scriptures (Upanishads, Vedas, Puranas, Pancharatna Gita, Shiva & Devi Stutis, Vivekachudamani, Valmiki Ramayana, and Ashtavakra Gita) with classical Sanskrit commentaries (Bhāṣyas) and an integrated AI Copilot.
 
 ---
 
 ## 🚀 Features
 
-- **4,460+ Scriptural Records**: Instant live search, filtering by language (Sanskrit Devanagari, English, Telugu, Hindi, etc.) and category.
+- **Comprehensive Scriptural Catalog**: Instant live search and multi-lingual filtering (Sanskrit Devanagari, English, Telugu, Hindi, etc.) across thousands of canonical texts.
 - **Embedded AI Copilot**: Ask questions about scriptures, verses, philosophy, and meanings with citation footnotes.
   - Supports **Local Ollama** (e.g. `llama3` on `http://localhost:11434`), **OpenAI-compatible APIs**, or custom endpoints.
 - **Pure Client-Side Architecture**: Zero backend server required for the catalog and search; runs directly in any modern browser.
@@ -75,9 +75,9 @@ gcloud run deploy sanatana-archive --source . --platform managed --allow-unauthe
 
 ---
 
-## 📚 Cloud Hosting for the 7.6 GB PDF Library
+## 📚 Cloud Hosting for the Scripture Library
 
-The web application catalogs 4,460+ sacred texts totaling ~7.6 GB. `index.html` dynamically resolves all document links through a configurable base prefix.
+The web application catalogs an extensive, living collection of sacred texts. `index.html` dynamically resolves all document links through a configurable cloud storage base prefix.
 
 ### Configuring the Cloud Bucket URL in `index.html`
 
@@ -87,7 +87,7 @@ The web application catalogs 4,460+ sacred texts totaling ~7.6 GB. `index.html` 
    - **Google Cloud Storage (GCS)**: `https://storage.googleapis.com/<YOUR_BUCKET_NAME>`
    - **Cloudflare R2**: `https://pub-<id>.r2.dev` (or your custom domain like `https://library.yourdomain.com`)
    - **AWS S3**: `https://<YOUR_BUCKET_NAME>.s3.<region>.amazonaws.com`
-4. Click **Save Settings**. All 4,460+ document buttons, citations, and footnotes will immediately point to your cloud bucket!
+4. Click **Save Settings**. All document buttons, citations, and footnotes will immediately point to your cloud bucket!
    *(Leaving this field blank automatically falls back to local relative paths).*
 
 ---
