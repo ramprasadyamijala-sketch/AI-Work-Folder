@@ -1037,6 +1037,39 @@ body.copilot-open {
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
+.routing-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.routing-badge.flash {
+  background: rgba(255, 158, 64, 0.15);
+  color: #ffb74d;
+  border: 1px solid rgba(255, 158, 64, 0.35);
+}
+.routing-badge.pro {
+  background: rgba(186, 104, 200, 0.2);
+  color: #e1bee7;
+  border: 1px solid rgba(186, 104, 200, 0.4);
+  box-shadow: 0 0 8px rgba(186, 104, 200, 0.25);
+}
+.routing-badge.offline {
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  border: 1px solid rgba(46, 204, 113, 0.3);
+}
+.routing-badge.ollama {
+  background: rgba(100, 181, 246, 0.15);
+  color: #64b5f6;
+  border: 1px solid rgba(100, 181, 246, 0.3);
+}
+
 .msg-author-badge {
   display: flex;
   align-items: center;
@@ -1414,6 +1447,14 @@ body.copilot-open.copilot-expanded .app-container {
     <div class="form-group" id="group-api-key" style="display: none;">
       <label id="label-api-key">API Key:</label>
       <input type="password" id="setting-api-key" placeholder="Paste your API key here (saved locally)">
+    </div>
+    <div class="form-group" id="group-routing-mode" style="display: none;">
+      <label>Dynamic Complexity Routing:</label>
+      <select id="setting-routing-mode" onchange="updateProviderUI()">
+        <option value="auto">⚡ Auto (Smart: Flash for summaries, Pro for deep philosophy)</option>
+        <option value="flash">⚡ Speed Tier (Gemini 1.5 Flash - Fast & Economical)</option>
+        <option value="pro">🧠 Deep Scholar Tier (Gemini 1.5 Pro - Exhaustive Reasoning)</option>
+      </select>
     </div>
     <div class="form-group" id="group-api-url" style="display: none;">
       <label>API Endpoint URL:</label>
@@ -1885,13 +1926,16 @@ let copilotHistory = [];
 let copilotConfig = {
   provider: localStorage.getItem('copilot_provider') || 'offline',
   apiKey: localStorage.getItem('copilot_api_key') || '',
-  apiUrl: localStorage.getItem('copilot_api_url') || ''
+  apiUrl: localStorage.getItem('copilot_api_url') || '',
+  routingMode: localStorage.getItem('copilot_routing_mode') || 'auto'
 };
 
 function initCopilot() {
   document.getElementById('setting-provider').value = copilotConfig.provider;
   document.getElementById('setting-api-key').value = copilotConfig.apiKey;
   document.getElementById('setting-api-url').value = copilotConfig.apiUrl;
+  const routingSelect = document.getElementById('setting-routing-mode');
+  if (routingSelect) routingSelect.value = copilotConfig.routingMode;
   const storageInput = document.getElementById('setting-storage-url');
   if (storageInput) storageInput.value = CLOUD_STORAGE_BASE_URL;
   updateProviderUI();
@@ -1910,7 +1954,7 @@ function initCopilot() {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
         copilotHistory = [];
-        parsed.forEach(m => addCopilotMessage(m.role, m.text, m.cards || [], false));
+        parsed.forEach(m => addCopilotMessage(m.role, m.text, m.cards || [], false, m.tier || null));
         updateMemoryBadge();
         return;
       }
@@ -2009,25 +2053,40 @@ function updateProviderUI() {
   const labelKey = document.getElementById('label-api-key');
   const modeTag = document.getElementById('copilot-mode-label');
 
+  const routingGroup = document.getElementById('group-routing-mode');
+
   if (prov === 'offline') {
     keyGroup.style.display = 'none';
     urlGroup.style.display = 'none';
+    if (routingGroup) routingGroup.style.display = 'none';
     modeTag.textContent = '● Offline Knowledge Engine';
     modeTag.style.color = '#2ecc71';
   } else if (prov === 'gemini') {
     keyGroup.style.display = 'block';
     urlGroup.style.display = 'none';
+    if (routingGroup) routingGroup.style.display = 'block';
     labelKey.textContent = 'Google Gemini API Key:';
-    modeTag.textContent = '● Gemini AI Connected';
-    modeTag.style.color = '#ff9e40';
+    const rMode = (document.getElementById('setting-routing-mode')?.value) || copilotConfig.routingMode;
+    if (rMode === 'pro') {
+      modeTag.textContent = '● Gemini Pro (Deep Scholar)';
+      modeTag.style.color = '#ba68c8';
+    } else if (rMode === 'flash') {
+      modeTag.textContent = '● Gemini Flash (Speed Tier)';
+      modeTag.style.color = '#ff9e40';
+    } else {
+      modeTag.textContent = '● Auto Dynamic Routing';
+      modeTag.style.color = '#00e5ff';
+    }
   } else if (prov === 'ollama') {
     keyGroup.style.display = 'none';
     urlGroup.style.display = 'block';
+    if (routingGroup) routingGroup.style.display = 'none';
     modeTag.textContent = '● Ollama Local AI';
     modeTag.style.color = '#64b5f6';
   } else {
     keyGroup.style.display = 'block';
     urlGroup.style.display = 'block';
+    if (routingGroup) routingGroup.style.display = 'none';
     labelKey.textContent = 'API Key:';
     modeTag.textContent = '● Custom API AI';
     modeTag.style.color = '#ba68c8';
@@ -2038,6 +2097,9 @@ function saveCopilotSettings() {
   copilotConfig.provider = document.getElementById('setting-provider').value;
   copilotConfig.apiKey = document.getElementById('setting-api-key').value.trim();
   copilotConfig.apiUrl = document.getElementById('setting-api-url').value.trim();
+  const routingSelect = document.getElementById('setting-routing-mode');
+  if (routingSelect) copilotConfig.routingMode = routingSelect.value;
+  localStorage.setItem('copilot_routing_mode', copilotConfig.routingMode);
 
   const storageInput = document.getElementById('setting-storage-url');
   if (storageInput) {
@@ -2082,6 +2144,48 @@ function askCopilot(question) {
   sendCopilotMessage();
 }
 
+// ========================================================
+// DYNAMIC COMPLEXITY ROUTER (SMART MODEL & TOKEN ORCHESTRATOR)
+// ========================================================
+function analyzeQueryComplexity(query) {
+  const q = query.toLowerCase();
+
+  // 1. High Complexity Indicators (Philosophical, Comparative, Technical Exegesis)
+  const deepKeywords = [
+    'compare', 'contrast', 'difference between', 'versus', 'vs', 'reconcile',
+    'advaita', 'vishishtadvaita', 'dvaita', 'shankaracharya', 'ramanuja', 'madhva',
+    'maya', 'avidya', 'vivarta', 'vivartavada', 'parinama', 'parinamavada', 'ajatavada',
+    'anirvachaniya', 'pramana', 'pratyaksha', 'anumana', 'shabda', 'sampradaya', 'darshana',
+    'tattva', 'upadhi', 'brahma sutra', 'bhashya', 'commentary comparison', 'etymology',
+    'nirukta', 'nasadiya', 'purusha sukta', 'mandukya karika', 'trika', 'spanda',
+    'pratyabhijna', 'kashmiri shaivism', 'four states of consciousness', 'turiyatita',
+    'samadhi', 'kundalini', 'shaktipata', 'jivanmukti', 'videhamukti', 'panchikaranam'
+  ];
+
+  let complexityScore = 0;
+  deepKeywords.forEach(kw => {
+    if (q.includes(kw)) complexityScore += 1;
+  });
+
+  // Check word length (> 18 words suggests a nuanced multi-clause inquiry)
+  const wordCount = q.split(/\s+/).filter(Boolean).length;
+  if (wordCount >= 18) complexityScore += 1;
+  if (wordCount >= 30) complexityScore += 2;
+
+  // Multi-part questions (multiple question marks or compounding clauses)
+  if ((q.match(/\?/g) || []).length > 1) complexityScore += 1;
+  if (q.includes('in detail') || q.includes('deep') || q.includes('philosophical') || q.includes('theology') || q.includes('comprehensive') || q.includes('breakdown')) {
+    complexityScore += 1;
+  }
+
+  const isPro = complexityScore >= 2;
+  return {
+    score: complexityScore,
+    tier: isPro ? 'pro' : 'flash',
+    reason: isPro ? 'Deep metaphysical & comparative theology' : 'Standard doctrinal & scriptural inquiry'
+  };
+}
+
 function sendCopilotMessage() {
   const input = document.getElementById('copilot-input');
   const text = input.value.trim();
@@ -2094,22 +2198,34 @@ function sendCopilotMessage() {
 
   setTimeout(async () => {
     try {
-      if (copilotConfig.provider === 'offline' || !copilotConfig.apiKey && copilotConfig.provider === 'gemini') {
+      if (copilotConfig.provider === 'offline' || (!copilotConfig.apiKey && copilotConfig.provider === 'gemini')) {
         const response = generateOfflineResponse(text);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards);
+        addCopilotMessage('assistant', response.text, response.cards, true, 'offline');
       } else if (copilotConfig.provider === 'gemini') {
-        const response = await callGeminiAPI(text);
+        // Resolve Target Routing Tier
+        let targetTier = 'flash';
+        if (copilotConfig.routingMode === 'pro') {
+          targetTier = 'pro';
+        } else if (copilotConfig.routingMode === 'flash') {
+          targetTier = 'flash';
+        } else {
+          // Auto Dynamic Routing
+          const analysis = analyzeQueryComplexity(text);
+          targetTier = analysis.tier;
+        }
+
+        const response = await callGeminiAPI(text, targetTier);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards);
+        addCopilotMessage('assistant', response.text, response.cards, true, response.tier || targetTier);
       } else if (copilotConfig.provider === 'ollama') {
         const response = await callOllamaAPI(text);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards);
+        addCopilotMessage('assistant', response.text, response.cards, true, 'ollama');
       } else {
         const response = await callOpenAICompatibleAPI(text);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards);
+        addCopilotMessage('assistant', response.text, response.cards, true, 'pro');
       }
     } catch (err) {
       removeTypingIndicator();
@@ -2118,7 +2234,7 @@ function sendCopilotMessage() {
   }, 400);
 }
 
-function addCopilotMessage(role, text, cards = [], saveToStorage = true) {
+function addCopilotMessage(role, text, cards = [], saveToStorage = true, tier = null) {
   const messagesContainer = document.getElementById('copilot-messages');
   const div = document.createElement('div');
   const msgId = 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1000);
@@ -2130,11 +2246,22 @@ function addCopilotMessage(role, text, cards = [], saveToStorage = true) {
   let cardsHtml = '';
 
   if (role === 'assistant') {
+    const tierBadges = {
+      'pro': '<span class="routing-badge pro" title="Routed to Gemini 1.5 Pro for deep metaphysical reasoning & comparative Bhashyas">🧠 Gemini Pro • Deep Scholar</span>',
+      'flash': '<span class="routing-badge flash" title="Routed to Gemini 1.5 Flash for high-speed analysis">⚡ Gemini Flash • Fast Scholar</span>',
+      'offline': '<span class="routing-badge offline" title="Answered by client-side Built-in Knowledge Engine">🕉️ Built-in Engine</span>',
+      'ollama': '<span class="routing-badge ollama" title="Answered by Local Ollama instance">💻 Local AI</span>'
+    };
+    const tierBadgeHtml = tier && tierBadges[tier] ? tierBadges[tier] : '';
+
     headerHtml = `
       <div class="msg-header">
-        <div class="msg-author-badge">
-          <span>🕉️</span>
-          <span>Sanātana Copilot</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="msg-author-badge">
+            <span>🕉️</span>
+            <span>Sanātana Copilot</span>
+          </div>
+          ${tierBadgeHtml}
         </div>
         ${cards && cards.length > 0 ? `<a href="#fn-${msgId}" class="msg-fn-jump" onclick="event.preventDefault(); const el = document.getElementById('fn-${msgId}'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });">📜 ${cards.length} Footnote${cards.length > 1 ? 's' : ''} ↓</a>` : ''}
       </div>
@@ -2183,7 +2310,7 @@ function addCopilotMessage(role, text, cards = [], saveToStorage = true) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   }
 
-  copilotHistory.push({ role, text, cards });
+  copilotHistory.push({ role, text, cards, tier });
 
   if (saveToStorage) {
     try {
@@ -2962,61 +3089,98 @@ You are invited to contemplate any of these foundational spiritual themes:
    LIVE AI INTEGRATION (GEMINI / OLLAMA / OPENAI)
    ======================================================== */
 
-async function callGeminiAPI(query) {
+async function callGeminiAPI(query, targetTier = 'flash') {
   const apiKey = copilotConfig.apiKey;
   if (!apiKey) throw new Error("Gemini API Key is not set in settings");
+
+  // Determine Model & RAG parameters based on dynamic complexity tier
+  const isPro = (targetTier === 'pro');
+  const modelName = isPro ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
+  const maxContext = isPro ? 20 : 10;
+  const historyCount = isPro ? -12 : -8;
 
   const words = query.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2);
   const contextMatches = ALL_ITEMS.filter(item => {
     const hay = (item.title + " " + item.rel + " " + item.cat + " " + item.sub).toLowerCase();
     return words.some(w => hay.includes(w));
-  }).slice(0, 12);
+  }).slice(0, maxContext);
 
   const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
-  const systemInstruction = `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
+  // Dynamic Scholarly System Prompt
+  const systemInstruction = isPro ?
+    `You are Sanātana Copilot operating in Deep Scholar Mode (Jñāna-Ācārya).
+You are an authoritative Vedic preceptor and philosopher of Sanātana Dharma with mastery over the Prasthanatrayi (Upanishads, Bhagavad Gita, Brahma Sutras), the Six Darshanas, Agamas, and Acharya Bhashyas.
+For this complex metaphysical inquiry:
+1. Conduct an exhaustive, rigorous dialectical examination (Purvapaksha vs. Siddhanta).
+2. Contrast interpretations across major philosophical traditions where relevant (Advaita of Shankara, Vishishtadvaita of Ramanuja, Dvaita of Madhvacharya, Shuddhadvaita, Achintya Bhedabheda, or Shaiva Siddhanta).
+3. Quote relevant Sanskrit verses in original Devanagari script with exact English grammatical rendering and profound spiritual significance.
+4. Cite specific corresponding texts from the archive context provided below with their paths.
+Maintain supreme spiritual reverence, metaphysical depth, and philosophical precision.` :
+    `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
 Speak with profound theological depth, spiritual reverence, contemplative majesty, and metaphysical clarity—never in dry FAQ bullet points or shallow summaries.
 Draw deeply upon Shruti (Vedas & Upanishads), Smriti (Bhagavad Gita & Puranas), Itihasa (Valmiki Ramayana), and Acharya Bhashyas.
-Quote authentic Sanskrit shlokas and mantras in Devanagari with English translations, explain their esoteric inner significance (Adhyatmic rahasya), illuminate the philosophical nuances (Advaita, Vishishtadvaita, Sankhya), and cite matching documents from the collection with their relative paths.`;
+Quote authentic Sanskrit shlokas and mantras in Devanagari with English translations, explain their esoteric inner significance (Adhyatmic rahasya), illuminate philosophical nuances, and cite matching documents from the collection with their relative paths.`;
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-  // Build compounding multi-turn history for Gemini
+  // Multi-turn conversational memory
   const geminiContents = [];
-  const historySlice = copilotHistory.slice(-10);
+  const historySlice = copilotHistory.slice(historyCount);
   historySlice.forEach(msg => {
     geminiContents.push({
       role: msg.role === "user" ? "user" : "model",
       parts: [{ text: msg.text }]
     });
   });
+
+  const promptNote = isPro ?
+    `Archive Context Documents:\n${contextStr}\n\nDeep Scholarly Question: ${query}\n\n(Provide an in-depth philosophical treatise addressing the metaphysical nuances, compare classical schools where applicable, quote Sanskrit in Devanagari, and cite exact texts from the archive.)` :
+    `Relevant Archive Documents for Reference:\n${contextStr}\n\nCurrent Question: ${query}\n\n(Please build upon our preceding conversation thread, cite specific scriptures from the archive context where relevant, quote Sanskrit verses in Devanagari, and maintain an authentic, spiritually elevated theological tone.)`;
+
   geminiContents.push({
     role: "user",
-    parts: [{
-      text: `Relevant Archive Documents for Reference:\n${contextStr}\n\nCurrent Question: ${query}\n\n(Please build upon our preceding conversation thread, cite specific scriptures from the archive context where relevant, quote Sanskrit verses in Devanagari, and maintain an authentic, spiritually elevated theological tone.)`
-    }]
+    parts: [{ text: promptNote }]
   });
+
   const body = {
     system_instruction: {
       parts: [{ text: systemInstruction }]
     },
-    contents: geminiContents
+    contents: geminiContents,
+    generationConfig: {
+      temperature: isPro ? 0.4 : 0.7,
+      maxOutputTokens: isPro ? 4096 : 2048
+    }
   };
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
 
-  if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || "Failed to query Gemini API");
+    if (!res.ok) {
+      const err = await res.json();
+      // If Gemini Pro is rate-limited (HTTP 429) or unavailable, seamlessly fallback to Gemini Flash
+      if (isPro) {
+        console.warn("Gemini Pro hit rate-limit or error, dynamically falling back to Gemini Flash...", err);
+        return await callGeminiAPI(query, 'flash');
+      }
+      throw new Error(err.error?.message || `Failed to query Gemini API (${res.status})`);
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
+    return { text, cards: contextMatches.slice(0, isPro ? 6 : 4), tier: targetTier };
+  } catch (err) {
+    if (isPro) {
+      console.warn("Network/execution error on Pro tier, falling back to Flash tier:", err);
+      return await callGeminiAPI(query, 'flash');
+    }
+    throw err;
   }
-
-  const data = await res.json();
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-  return { text, cards: contextMatches.slice(0, 4) };
 }
 
 async function callOllamaAPI(query) {
