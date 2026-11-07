@@ -1507,19 +1507,16 @@ const CATEGORY_CONFIG = {"01_Upanishads": {"name": "108 Upanishads & Commentarie
 const ROOT_PATH = "/Users/chanduyamijala/Documents/Ai folders /Google/Hindu_Scriptures";
 
 // Cloud Storage / Bucket URL prefix (supports GCS, Cloudflare R2, AWS S3, or custom CDN)
-let CLOUD_STORAGE_BASE_URL = "https://storage.googleapis.com/sanatanawikiproject";
-const userCustomStorage = localStorage.getItem('cloud_storage_base_url');
-if (userCustomStorage && userCustomStorage.trim() && !userCustomStorage.includes('permissions/Hindu_Scriptures')) {
-  CLOUD_STORAGE_BASE_URL = userCustomStorage.trim();
+const DEFAULT_CLOUD_STORAGE = "https://storage.googleapis.com/sanatanawikiproject";
+let CLOUD_STORAGE_BASE_URL = localStorage.getItem('cloud_storage_base_url');
+if (!CLOUD_STORAGE_BASE_URL || !CLOUD_STORAGE_BASE_URL.trim() || CLOUD_STORAGE_BASE_URL.includes('permissions/Hindu_Scriptures')) {
+  CLOUD_STORAGE_BASE_URL = DEFAULT_CLOUD_STORAGE;
+  localStorage.setItem('cloud_storage_base_url', DEFAULT_CLOUD_STORAGE);
 }
 
 function resolvePdfUrl(relPath) {
-  if (!CLOUD_STORAGE_BASE_URL || !CLOUD_STORAGE_BASE_URL.trim()) {
-    return encodeURI(relPath);
-  }
-  let base = CLOUD_STORAGE_BASE_URL.trim().replace(/\/+$/, '');
-  // Clean up any stale permissions/Hindu_Scriptures prefix from legacy settings
-  base = base.replace(/\/permissions\/Hindu_Scriptures\/?$/, '');
+  let base = (CLOUD_STORAGE_BASE_URL && CLOUD_STORAGE_BASE_URL.trim()) ? CLOUD_STORAGE_BASE_URL.trim() : DEFAULT_CLOUD_STORAGE;
+  base = base.replace(/\/+$/, '').replace(/\/permissions\/Hindu_Scriptures\/?$/, '');
   return `${base}/${encodeURI(relPath)}`;
 }
 
@@ -2110,7 +2107,7 @@ function saveCopilotSettings() {
 
   const storageInput = document.getElementById('setting-storage-url');
   if (storageInput) {
-    CLOUD_STORAGE_BASE_URL = storageInput.value.trim();
+    CLOUD_STORAGE_BASE_URL = storageInput.value.trim() || DEFAULT_CLOUD_STORAGE;
     localStorage.setItem('cloud_storage_base_url', CLOUD_STORAGE_BASE_URL);
   }
 
