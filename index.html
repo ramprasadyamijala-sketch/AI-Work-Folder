@@ -1462,7 +1462,7 @@ body.copilot-open.copilot-expanded .app-container {
     </div>
     <div class="form-group" id="group-storage-url" style="margin-top: 10px;">
       <label>PDF Cloud Bucket / CDN Base URL:</label>
-      <input type="text" id="setting-storage-url" placeholder="https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures">
+      <input type="text" id="setting-storage-url" placeholder="https://storage.googleapis.com/sanatanawikiproject">
       <small style="color:var(--text-dim); display:block; font-size:11px; margin-top:3px;">When set, PDF links and Copilot citations open from your cloud bucket. Leave empty for local paths.</small>
     </div>
     <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -1507,16 +1507,19 @@ const CATEGORY_CONFIG = {"01_Upanishads": {"name": "108 Upanishads & Commentarie
 const ROOT_PATH = "/Users/chanduyamijala/Documents/Ai folders /Google/Hindu_Scriptures";
 
 // Cloud Storage / Bucket URL prefix (supports GCS, Cloudflare R2, AWS S3, or custom CDN)
-let CLOUD_STORAGE_BASE_URL = localStorage.getItem('cloud_storage_base_url') || "https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures";
+let CLOUD_STORAGE_BASE_URL = "https://storage.googleapis.com/sanatanawikiproject";
+const userCustomStorage = localStorage.getItem('cloud_storage_base_url');
+if (userCustomStorage && userCustomStorage.trim() && !userCustomStorage.includes('permissions/Hindu_Scriptures')) {
+  CLOUD_STORAGE_BASE_URL = userCustomStorage.trim();
+}
 
 function resolvePdfUrl(relPath) {
   if (!CLOUD_STORAGE_BASE_URL || !CLOUD_STORAGE_BASE_URL.trim()) {
     return encodeURI(relPath);
   }
   let base = CLOUD_STORAGE_BASE_URL.trim().replace(/\/+$/, '');
-  if (base === "https://storage.googleapis.com/sanatanawikiproject" && !relPath.startsWith("permissions/")) {
-    base = "https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures";
-  }
+  // Clean up any stale permissions/Hindu_Scriptures prefix from legacy settings
+  base = base.replace(/\/permissions\/Hindu_Scriptures\/?$/, '');
   return `${base}/${encodeURI(relPath)}`;
 }
 
