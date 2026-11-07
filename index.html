@@ -1488,6 +1488,7 @@ body.copilot-open.copilot-expanded .app-container {
     <button class="prompt-chip" onclick="askCopilot('Show me Vivekachudamani commentaries and Bhashya')">👑 Vivekachudamani Bhashya</button>
     <button class="prompt-chip" onclick="askCopilot('Find Shiva Sahasranama and Rudram')">🔱 Shiva Sahasranama</button>
     <button class="prompt-chip" onclick="askCopilot('Find Lalita Sahasranama and Devi Stutis')">🌸 Lalita Sahasranama</button>
+    <button class="prompt-chip" onclick="askCopilot('What is the difference between Advaita and Vishishtadvaita?')">⚖️ Advaita vs Vishishtadvaita</button>
     <button class="prompt-chip" onclick="askCopilot('What are the Agamas, Pancharatra and Shaiva Shastras?')">🛕 Agamas & Tantras</button>
   </div>
 
@@ -2363,7 +2364,8 @@ const TOPIC_NAMES = {
   'karma': 'Karma, Punarjanma & Saṁsāra',
   'atman_brahman': 'Nature of Ātman, Brahman & Consciousness',
   'stutis': 'Śiva & Devī Sacred Stutis',
-  'agamas': 'Canonical Āgamas & Tantra Śāstras'
+  'agamas': 'Canonical Āgamas & Tantra Śāstras',
+  'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas'
 };
 
 const TOPIC_KEYWORDS = {
@@ -2379,7 +2381,8 @@ const TOPIC_KEYWORDS = {
   'karma': ['karma', 'reincarnation', 'rebirth', 'death', 'afterlife', 'punarjanma', 'samsara', 'garuda'],
   'atman_brahman': ['atman', 'brahman', 'who am i', 'consciousness', 'saccidananda', 'supreme self'],
   'stutis': ['shiva', 'rudra', 'devi', 'lalita', 'durga', 'stotra', 'stuti', 'sahasranama', 'kavacha', 'ashtakam'],
-  'agamas': ['agama', 'agamas', 'aagama', 'tantra', 'tantras', 'samhita', 'pancharatra', 'pancaratra', 'ahirbudhnya', 'kamika', 'shaiva agama', 'vaishnava agama', 'temple', 'pratishtha', 'archana', 'kriya', 'charya', 'shilpa', 'vastu', 'kularnava', 'mahanirvana', 'jayakhya', 'raurava', 'ajita', 'karana', 'lakshmi tantra']
+  'agamas': ['agama', 'agamas', 'aagama', 'tantra', 'tantras', 'samhita', 'pancharatra', 'pancaratra', 'ahirbudhnya', 'kamika', 'shaiva agama', 'vaishnava agama', 'temple', 'pratishtha', 'archana', 'kriya', 'charya', 'shilpa', 'vastu', 'kularnava', 'mahanirvana', 'jayakhya', 'raurava', 'ajita', 'karana', 'lakshmi tantra'],
+  'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita']
 };
 
 function detectExplicitTopic(q) {
@@ -2405,6 +2408,7 @@ function detectExplicitTopic(q) {
   if (TOPIC_KEYWORDS['atman_brahman'].some(kw => q.includes(kw))) return 'atman_brahman';
   if (TOPIC_KEYWORDS['upanishads_general'].some(kw => q.includes(kw))) return 'upanishads_general';
   if (TOPIC_KEYWORDS['stutis'].some(kw => q.includes(kw))) return 'stutis';
+  if (TOPIC_KEYWORDS['vedanta_darshanas'].some(kw => q.includes(kw))) return 'vedanta_darshanas';
   if (TOPIC_KEYWORDS['agamas'].some(kw => q.includes(kw))) return 'agamas';
   return null;
 }
@@ -2462,7 +2466,9 @@ function generateOfflineResponse(query, forceContinue = false, forceNew = false)
         'meaning', 'significance', 'important', 'importance', 'continue',
         'summarize', 'what does this mean', 'who is', 'teach me'
       ];
-      const isClearFollowUp = clearFollowUps.some(cue => q.includes(cue));
+      const independentTopics = ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'ramayana', 'gita', 'upanishad', 'karma', 'creation', 'shiva', 'devi'];
+      const hasIndependentSubject = independentTopics.some(sub => q.includes(sub));
+      const isClearFollowUp = !hasIndependentSubject && clearFollowUps.some(cue => q.includes(cue));
 
       if (isClearFollowUp) {
         topic = lastActiveTopic;
@@ -2510,6 +2516,74 @@ Before we proceed, could you please clarify your intention:
   // ========================================================
   // TOPIC HANDLERS
   // ========================================================
+
+  // 00B. ADVAITA VS VISHISHTADVAITA & VEDANTA DARSHANAS
+  if (topic === 'vedanta_darshanas') {
+    const v1 = ALL_ITEMS.find(x => x.rel.includes('Vivekachudamani Bhashya') || (x.cat === '07_Vivekachudamani' && x.featured)) || ALL_ITEMS.find(x => x.cat === '07_Vivekachudamani');
+    const v2 = ALL_ITEMS.find(x => x.rel.includes('Ashtavakra_Samhita') || (x.cat === '09_Ashtavakra_Gita' && x.featured));
+    const v3 = ALL_ITEMS.find(x => x.rel.includes('SP_19222'));
+    const v4 = ALL_ITEMS.find(x => x.rel.includes('Govindaraja/1.Valmiki.Ramayana-Bala.Kanda.pdf'));
+    const v5 = ALL_ITEMS.find(x => x.rel.includes('Agama Pramanyam'));
+    const advaitaCards = [v1, v2, v3, v4, v5].filter(Boolean);
+
+    let answer = transitionNote + `
+### 🕉️ Advaita Vedānta vs. Viśiṣṭādvaita Vedānta: The Great Dialogue of Sanātana Philosophy
+
+Both **Advaita** (founded systematically by **Ādi Śaṅkarācārya**) and **Viśiṣṭādvaita** (synthesized by **Bhagavān Rāmānujācārya**) root their authority in the **Prasthānatrayī** (Upaniṣads, Bhagavad Gītā, and Brahma Sūtras). Yet, they offer two distinct, complementary summits of spiritual realization:
+
+---
+
+### 1. The Nature of Ultimate Reality (*Brahman*)
+
+| Dimension | Advaita Vedānta (Ādi Śaṅkara) | Viśiṣṭādvaita Vedānta (Śrī Rāmānuja) |
+|---|---|---|
+| **Brahman's Nature** | **Nirguṇa & Nirviśeṣa**: Pure, undifferentiated consciousness without attributes, form, or internal distinctions (*Sajātīya, Vijātīya, Svagata Bheda Rahita*). | **Saguṇa & Saviśeṣa**: The Supreme Person (**Śrīman Nārāyaṇa / Parabrahman**) possessing infinite auspicious attributes (*Ananta Kalyāṇa Guṇa*), free from all imperfections (*Heya-Pratyanīka*). |
+| **Relation to Souls & Matter** | Non-dual identity. Any perceived division between Ātman and Brahman is caused by beginningless nescience (*Avidyā/Māyā*). | **Śarīra-Śarīrī Bhāva** (Body-Soul relationship). Sentient souls (*Cit*) and insentient matter (*Acit*) form the eternal, real "body" of Brahman, who is the indwelling Self (*Śarīrī / Antaryāmin*). |
+
+---
+
+### 2. The Status of the Universe (*Jagat*) & Māyā
+
+* **Advaita (Vivartavāda — Apparent Transformation)**:
+  * The world is **Mithyā** (neither absolutely real like Brahman, nor totally non-existent like a rabbit's horn; it is *Anirvacanīya* — inexplicable).
+  * The universe is superimposed upon Brahman just as a snake is mistakenly perceived upon a rope in twilight. When dawn breaks (*Jñāna*), only the rope remains.
+  * Famous dictum:  
+    $$\text{ब्रह्म सत्यं जगन्मिथ्या जीवो ब्रह्मैव नापरः}$$  
+    *(Brahma satyaṁ jagan-mithyā jīvo brahmaiva nāparaḥ — "Brahman alone is real; the universe is an apparent appearance; the individual soul is non-different from Brahman.")*
+
+* **Viśiṣṭādvaita (Pariṇāmavāda / Satkāryavāda — Real Transformation)**:
+  * The world is **Satya (Real)**. Śrī Rāmānuja vehemently rejects that the universe is an illusion.
+  * Māyā is not ignorance; it is the divine, wondrous cosmic creative power of the Lord (*Prakṛti*).
+  * God truly manifests the cosmos from its unmanifest (*Sūkṣma*) state to its manifest (*Sthūla*) state.
+
+---
+
+### 3. The Individual Soul (*Jīva*) and Liberation (*Mokṣa*)
+
+* **Advaita Vedānta**:
+  * The Jīva is intrinsically identical with Brahman (*Aham Brahmāsmi*, *Tat Tvam Asi*).
+  * Liberation is **Jīvanmukti** (freedom while still living in the body). Mokṣa is not reaching a physical heaven, but the instant dissolution of the illusion of separation through Self-Knowledge (*Jñāna*).
+
+* **Viśiṣṭādvaita Vedānta**:
+  * The Jīva is an eternal, atomic (*Aṇu*), conscious spark (*Aṁśa*) of the Lord. It never becomes identical with God.
+  * Liberation is **Videhamukti** into the supreme spiritual realm (**Vaikuṇṭha / Parama Pada**), attaining **Sāyujya** (eternal loving communion and devotional service, *Kainkarya*).
+  * The sovereign path is **Prapatti / Śaraṇāgati** (unconditional self-surrender to the grace of the Divine Mother Lakṣmī and Lord Nārāyaṇa), as taught in Gītā 18.66.
+
+---
+
+### 4. Primary Scripture Treatises in Our Archive
+
+* **For Advaita Vedānta**:
+  * **Vivecūḍāmaṇi** of Ādi Śaṅkara with Jagadguru Śrī Candraśekhara Bhāratī’s Śṛṅgerī Bhāṣyam
+  * **Aṣṭāvakra Gītā** (Advaita Ashrama edition with Swami Nityaswarupananda)
+  * **108 Upaniṣads** with Upaniṣad Brahma Yogin’s non-dual commentary (Adyar Library)
+* **For Viśiṣṭādvaita Vedānta**:
+  * **Pañcaratna Gītā** (Gita Press Gorakhpur) & Bhagavad Gītā with Rāmānuja’s devotional vision
+  * **Vālmīki Rāmāyaṇa with Govindarāja’s Bhūṣaṇa Bhāṣya** (revered by Śrīvaiṣṇavas as the supreme *Śaraṇāgati Śāstra*)
+  * **Āgama Prāmāṇyam** of Ācārya Yāmunācārya (foundational defense of Pāñcarātra and Viśiṣṭādvaita theology)
+`;
+    return { text: answer, cards: advaitaCards.slice(0, 5) };
+  }
 
   // 00. AGAMAS & TANTRAS
   if (topic === 'agamas') {
