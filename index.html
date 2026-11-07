@@ -1462,7 +1462,7 @@ body.copilot-open.copilot-expanded .app-container {
     </div>
     <div class="form-group" id="group-storage-url" style="margin-top: 10px;">
       <label>PDF Cloud Bucket / CDN Base URL:</label>
-      <input type="text" id="setting-storage-url" placeholder="https://storage.googleapis.com/sanatanawikiproject">
+      <input type="text" id="setting-storage-url" placeholder="https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures">
       <small style="color:var(--text-dim); display:block; font-size:11px; margin-top:3px;">When set, PDF links and Copilot citations open from your cloud bucket. Leave empty for local paths.</small>
     </div>
     <div style="display: flex; gap: 8px; margin-top: 10px;">
@@ -1507,13 +1507,16 @@ const CATEGORY_CONFIG = {"01_Upanishads": {"name": "108 Upanishads & Commentarie
 const ROOT_PATH = "/Users/chanduyamijala/Documents/Ai folders /Google/Hindu_Scriptures";
 
 // Cloud Storage / Bucket URL prefix (supports GCS, Cloudflare R2, AWS S3, or custom CDN)
-let CLOUD_STORAGE_BASE_URL = localStorage.getItem('cloud_storage_base_url') || "https://storage.googleapis.com/sanatanawikiproject";
+let CLOUD_STORAGE_BASE_URL = localStorage.getItem('cloud_storage_base_url') || "https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures";
 
 function resolvePdfUrl(relPath) {
   if (!CLOUD_STORAGE_BASE_URL || !CLOUD_STORAGE_BASE_URL.trim()) {
     return encodeURI(relPath);
   }
-  const base = CLOUD_STORAGE_BASE_URL.trim().replace(/\/+$/, '');
+  let base = CLOUD_STORAGE_BASE_URL.trim().replace(/\/+$/, '');
+  if (base === "https://storage.googleapis.com/sanatanawikiproject" && !relPath.startsWith("permissions/")) {
+    base = "https://storage.googleapis.com/sanatanawikiproject/permissions/Hindu_Scriptures";
+  }
   return `${base}/${encodeURI(relPath)}`;
 }
 
