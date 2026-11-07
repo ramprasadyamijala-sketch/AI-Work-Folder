@@ -3089,6 +3089,74 @@ You are invited to contemplate any of these foundational spiritual themes:
    LIVE AI INTEGRATION (GEMINI / OLLAMA / OPENAI)
    ======================================================== */
 
+// ========================================================
+// AUTORESEARCH-OPTIMIZED CONTEXT RETRIEVER (KARPATHY-STYLE)
+// ========================================================
+function getOptimizedContextMatches(query, maxContext) {
+  const STOPWORDS = new Set([
+    'what', 'does', 'about', 'teach', 'how', 'why', 'who', 'where', 'when',
+    'which', 'tell', 'explain', 'show', 'find', 'the', 'and', 'for', 'with',
+    'from', 'into', 'this', 'that', 'are', 'can', 'you'
+  ]);
+
+  const SYNONYMS = {
+    'siva': ['shiva', 'rudra'],
+    'shiva': ['siva', 'rudra'],
+    'krsna': ['krishna'],
+    'krishna': ['krsna'],
+    'sankara': ['shankara'],
+    'shankara': ['sankara'],
+    'pancaratra': ['pancharatra', 'samhita'],
+    'pancharatra': ['pancaratra', 'samhita'],
+    'agama': ['agamas', 'tantra', 'samhita'],
+    'agamas': ['agama', 'tantra', 'samhita'],
+    'upanishad': ['upanisad', 'upanishads'],
+    'ramayana': ['valmiki', 'rama']
+  };
+
+  const rawTokens = query.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 1);
+  const filtered = rawTokens.filter(w => !STOPWORDS.has(w));
+  const tokensSet = new Set(filtered);
+  filtered.forEach(w => {
+    if (SYNONYMS[w]) SYNONYMS[w].forEach(s => tokensSet.add(s));
+  });
+  const tokens = Array.from(tokensSet);
+  const rawClean = query.toLowerCase().trim();
+
+  const scored = [];
+  for (let i = 0; i < ALL_ITEMS.length; i++) {
+    const item = ALL_ITEMS[i];
+    const titleL = (item.title || '').toLowerCase();
+    const relL = (item.rel || '').toLowerCase();
+    const subL = (item.sub || '').toLowerCase();
+    const catL = (item.cat || '').toLowerCase();
+
+    let score = 0;
+    if (rawClean && titleL.includes(rawClean)) score += 60;
+    else if (rawClean && relL.includes(rawClean)) score += 35;
+
+    for (let j = 0; j < tokens.length; j++) {
+      const tok = tokens[j];
+      if (titleL.includes(tok)) score += 18;
+      if (subL.includes(tok)) score += 10;
+      if (relL.includes(tok)) score += 6;
+      if (catL.includes(tok)) score += 4;
+    }
+
+    let matchedCount = 0;
+    for (let j = 0; j < tokens.length; j++) {
+      const tok = tokens[j];
+      if (titleL.includes(tok) || relL.includes(tok)) matchedCount++;
+    }
+    if (matchedCount >= 2) score += (matchedCount * 12);
+
+    if (score > 0) scored.push({ score, item });
+  }
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, maxContext).map(x => x.item);
+}
+
 async function callGeminiAPI(query, targetTier = 'flash') {
   const apiKey = copilotConfig.apiKey;
   if (!apiKey) throw new Error("Gemini API Key is not set in settings");
@@ -3099,11 +3167,7 @@ async function callGeminiAPI(query, targetTier = 'flash') {
   const maxContext = isPro ? 20 : 10;
   const historyCount = isPro ? -12 : -8;
 
-  const words = query.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2);
-  const contextMatches = ALL_ITEMS.filter(item => {
-    const hay = (item.title + " " + item.rel + " " + item.cat + " " + item.sub).toLowerCase();
-    return words.some(w => hay.includes(w));
-  }).slice(0, maxContext);
+  const contextMatches = getOptimizedContextMatches(query, maxContext);
 
   const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
@@ -3185,10 +3249,7 @@ Quote authentic Sanskrit shlokas and mantras in Devanagari with English translat
 
 async function callOllamaAPI(query) {
   const url = copilotConfig.apiUrl || "http://localhost:11434/v1/chat/completions";
-  const contextMatches = ALL_ITEMS.filter(item => {
-    const q = query.toLowerCase();
-    return item.title.toLowerCase().includes(q) || item.rel.toLowerCase().includes(q);
-  }).slice(0, 8);
+  const contextMatches = getOptimizedContextMatches(query, 10);
 
   const res = await fetch(url, {
     method: 'POST',
@@ -3220,7 +3281,7 @@ async function callOpenAICompatibleAPI(query) {
   const apiKey = copilotConfig.apiKey;
   if (!apiKey) throw new Error("API Key is missing for custom endpoint");
 
-  const contextMatches = ALL_ITEMS.filter(item => item.title.toLowerCase().includes(query.toLowerCase())).slice(0, 6);
+  const contextMatches = getOptimizedContextMatches(query, 12);
 
   const res = await fetch(url, {
     method: 'POST',
