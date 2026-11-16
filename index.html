@@ -57,6 +57,7 @@
   --badge-bg: #223040;
   --success: #2ecc71;
   --copilot-width: 540px;
+  --netlify-badge-height: 92px;
 }
 
 * {
@@ -605,7 +606,7 @@ body.copilot-open {
 
 .copilot-toggle-btn {
   position: fixed;
-  bottom: 24px;
+  bottom: calc(var(--netlify-badge-height) + 24px);
   right: 24px;
   background: linear-gradient(135deg, var(--saffron) 0%, var(--gold) 100%);
   color: #0b0f14;
@@ -646,9 +647,10 @@ body.copilot-open {
 .copilot-drawer {
   position: fixed;
   top: 0;
+  bottom: var(--netlify-badge-height);
   right: calc(-1 * var(--copilot-width));
   width: var(--copilot-width);
-  height: 100vh;
+  height: auto;
   background: #111720;
   border-left: 1px solid var(--border);
   box-shadow: -8px 0 35px rgba(0, 0, 0, 0.6);
