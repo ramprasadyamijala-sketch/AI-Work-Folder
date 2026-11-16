@@ -1491,6 +1491,7 @@ body.copilot-open.copilot-expanded .app-container {
     <button class="prompt-chip" onclick="askCopilot('Find Shiva Sahasranama and Rudram')">🔱 Shiva Sahasranama</button>
     <button class="prompt-chip" onclick="askCopilot('Find Lalita Sahasranama and Devi Stutis')">🌸 Lalita Sahasranama</button>
     <button class="prompt-chip" onclick="askCopilot('What is the difference between Advaita and Vishishtadvaita?')">⚖️ Advaita vs Vishishtadvaita</button>
+    <button class="prompt-chip" onclick="askCopilot('What does scriptures talk about Kama, Krodha and the Gunas (Sattva, Rajas, Tamas)?')">⚔️ Kāma, Krodha & Guṇas</button>
     <button class="prompt-chip" onclick="askCopilot('What are the Agamas, Pancharatra and Shaiva Shastras?')">🛕 Agamas & Tantras</button>
   </div>
 
@@ -2370,7 +2371,8 @@ const TOPIC_NAMES = {
   'atman_brahman': 'Nature of Ātman, Brahman & Consciousness',
   'stutis': 'Śiva & Devī Sacred Stutis',
   'agamas': 'Canonical Āgamas & Tantra Śāstras',
-  'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas'
+  'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas',
+  'shadripus_gunas': 'Kāma, Krodha, the Ariṣaḍvarga & the Three Guṇas'
 };
 
 const TOPIC_KEYWORDS = {
@@ -2387,7 +2389,8 @@ const TOPIC_KEYWORDS = {
   'atman_brahman': ['atman', 'brahman', 'who am i', 'consciousness', 'saccidananda', 'supreme self'],
   'stutis': ['shiva', 'rudra', 'devi', 'lalita', 'durga', 'stotra', 'stuti', 'sahasranama', 'kavacha', 'ashtakam'],
   'agamas': ['agama', 'agamas', 'aagama', 'tantra', 'tantras', 'samhita', 'pancharatra', 'pancaratra', 'ahirbudhnya', 'kamika', 'shaiva agama', 'vaishnava agama', 'temple', 'pratishtha', 'archana', 'kriya', 'charya', 'shilpa', 'vastu', 'kularnava', 'mahanirvana', 'jayakhya', 'raurava', 'ajita', 'karana', 'lakshmi tantra'],
-  'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita']
+  'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita'],
+  'shadripus_gunas': ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya', 'arishadvarga', 'shadripu', 'six enemies', 'guna', 'gunas', 'sattva', 'sattvik', 'satvik', 'rajas', 'rajasik', 'tamas', 'tamasik', 'desire', 'anger', 'lust', 'passion', 'inner enemies', 'greed', 'wrath']
 };
 
 function detectExplicitTopic(q) {
@@ -2415,6 +2418,7 @@ function detectExplicitTopic(q) {
   if (TOPIC_KEYWORDS['stutis'].some(kw => q.includes(kw))) return 'stutis';
   if (TOPIC_KEYWORDS['vedanta_darshanas'].some(kw => q.includes(kw))) return 'vedanta_darshanas';
   if (TOPIC_KEYWORDS['agamas'].some(kw => q.includes(kw))) return 'agamas';
+  if (TOPIC_KEYWORDS['shadripus_gunas'].some(kw => q.includes(kw))) return 'shadripus_gunas';
   return null;
 }
 
@@ -3144,24 +3148,90 @@ Here are the texts matching your inquiry:
     return { text: answer, cards: matches.slice(0, 6) };
   }
 
-  // M. FALLBACK FOR UNRECOGNIZED TOPICS
+  // M. SHADRIPUS (KAMA, KRODHA, ARISHADVARGA) & THE THREE GUNAS
+  if (topic === 'shadripus_gunas') {
+    const gunaMatches = ALL_ITEMS.filter(x => {
+      const p = x.rel.toLowerCase();
+      return p.includes('pancharatna') || p.includes('gita') || p.includes('vivekachudamani') || p.includes('katha') || p.includes('ashtavakra');
+    });
+
+    let answer = transitionNote + `
+### ⚔️ The Ariṣaḍvarga & the Three Guṇas: Kāma, Krodha & Spiritual Sublimation
+
+In Sanātana Dharma, **Kāma (desire)** and **Krodha (anger)** are analyzed with profound psychological and spiritual precision across the **Bhagavad Gītā**, the **Kaṭha Upaniṣad**, and Ādi Śaṅkarācārya's **Vivekacūḍāmaṇi**. They form the core of the **Ariṣaḍvarga (अरिषड्वर्ग — The Six Internal Enemies of the Soul)**:
+1. **Kāma (काम)** — Lust / Selfish Desire
+2. **Krodha (क्रोध)** — Wrath / Anger
+3. **Lobha (लोभ)** — Greed / Possessiveness
+4. **Moha (मोह)** — Delusion / Infatuation
+5. **Mada (मद)** — Pride / Arrogance
+6. **Mātsarya (मात्सर्य)** — Envy / Jealousy
+
+---
+
+#### 1. The Genesis & Psychological Ladder of Degradation (*Gītā 3.37 & 2.62–63*)
+When Arjuna asks Bhagavān Śrī Kṛṣṇa what impels a soul to commit unrighteousness as if forced by an irresistible power (*Gītā 3.36*), the Lord pinpoints their source:
+
+> **काम एष क्रोध एष रजोगुणसमुद्भवः ।**  
+> **महाशनो महापाप्मा विद्ध्येनमिह वैरिणम् ॥** *(Gītā 3.37)*  
+> *"It is Kāma (desire), it is Krodha (anger), born of **Rajoguṇa (the mode of passion)**; it is all-devouring and all-sinful. Know this to be the supreme enemy in this world!"*
+
+In Chapter 2 (*2.62–63*), Śrī Kṛṣṇa charts the exact 8-stage sequence by which an uncontrolled mind destroys itself:
+1. **Dhyāyato viṣayān**: Brooding or dwelling on sensory objects.
+2. **Saṅga**: Emotional attachment is formed.
+3. **Kāma**: Craving to possess and enjoy ignites.
+4. **Krodha**: When desire is obstructed or denied, violent anger erupts (*Kāmāt krodho 'bhijāyate*).
+5. **Sammoha**: Anger breeds delusion and clouds rational judgment.
+6. **Smṛti-bhraṁśa**: Memory of moral lessons and spiritual discernment is eclipsed.
+7. **Buddhi-nāśa**: Complete loss of the discriminating intellect.
+8. **Praṇaśyati**: The person is ruined and falls away from spiritual progress.
+
+---
+
+#### 2. The Sāttvik, Rājasik, and Tāmasik Dimensions
+The scriptures explicitly explain how Kāma and Krodha manifest across the **Three Guṇas (Prakṛti's qualities)**:
+
+| Mode / Guṇa | Kāma (Desire) | Krodha (Anger) |
+| :--- | :--- | :--- |
+| **Tāmasik (तामसिक)** *(Darkness & Delusion)* | Perverse, destructive desires; obsessive addictions; lethargy; desires that harm oneself and others (*Gītā 16.21: Kāma, Krodha, and Lobha are the three gates of Naraka destroying the soul*). | Blind, vindictive wrath; brooding grudge; cruelty and destructive rage that seeks harm without restraint or self-control. |
+| **Rājasik (राजसिक)** *(Passion & Agitation)* | The primary natural home of desire (*Rajoguṇa-samudbhavaḥ*). Insatiable hunger for wealth, sensual indulgence, fame, power, and ego gratification. Leaves the soul perpetually restless, agitated, and burning. | Impatient, volatile temper; explosive irritation when one's selfish will, ego, or expectations are thwarted or criticized. |
+| **Sāttvik (सात्त्विक)** *(Sublimated / Dharmic Transformation)* | **Can Kāma be Sāttvik? Yes!** Śrī Kṛṣṇa explicitly declares in *Gītā 7.11*: <br>**धर्मविरुद्धो भूतेषु कामोऽस्मि भरतर्षभ**<br>*(“In all living beings, I am desire that is NOT contrary to Dharma!”)*.<br>Desires for liberation (*Mumukṣutva*), intense longing to realize God, righteous duty, protection of family, and selfless service (*Loka-saṅgraha*). | **Can Krodha be Sāttvik? Yes!** Righteous moral indignation directed against unrighteousness (*Adharma*) and oppression, completely free from personal malice or egoic vengeance (e.g., Śrī Rāma against Rāvaṇa; Arjuna on Kurukṣetra), as well as stern self-rebuke against one's own lower tendencies. |
+
+---
+
+#### 3. How the Scriptures Prescribe Conquering Them
+1. **The Chariot Allegory (*Kaṭha Upaniṣad 1.3.3–4*)**:
+   - The Ātman is the master of the chariot, the body is the chariot, **Buddhi (discriminating intellect)** is the charioteer, and **Manas (mind)** is the reins.
+   - When the intellect firmly commands the reins, the wild horses of the senses (*Indriyas*) are subdued, preventing Rajasik desires from hijacking the soul.
+2. **Ādi Śaṅkara’s Vivekacūḍāmaṇi (Verses 311–317)**:
+   - Śaṅkara warns that even a tiny dormant spark of Kāma can ignite a catastrophic forest fire of Saṁsāra. The remedy is **Vairāgya (dispassion)** and recognizing the ephemeral nature of worldly objects through **Viveka (discrimination)**.
+3. **Sublimation through Bhakti & Niṣkāma Karma**:
+   - Rather than repressing desire, the Gītā teaches *sublimation*: offer every action to the Divine without clinging to fruits (*Karmanyevādhikāraste*). When personal ego-attachment dissolves, anger loses its fuel completely.
+    `;
+    return { text: answer, cards: gunaMatches.slice(0, 5) };
+  }
+
+  // N. DYNAMIC ARCHIVE RETRIEVAL FOR UNRECOGNIZED TOPICS
+  const dynamicMatches = getOptimizedContextMatches(query, 6);
   let answer = `
-### 🕉️ Inquiries into the Infinite
+### 🕉️ Scriptural Exploration: "${escapeHtml(query)}"
 
-I have explored the scriptural archive for **"${escapeHtml(query)}"**. 
+I have searched your sacred library of **4,492 scriptures and commentaries** across all 10 canonical categories for this inquiry.
 
-You are invited to contemplate any of these foundational spiritual themes:
+${dynamicMatches.length > 0 ? `Here are the authoritative canonical texts addressing these concepts in our archive:` : `You are invited to contemplate any of these foundational spiritual gateways:`}
+  `;
+  if (dynamicMatches.length === 0) {
+    answer += `
 - **"What is the first Slokha of Mandukya Upanishad?"** *(OM and the 4 states of consciousness)*
-- **"Why is the Mandukya Upanishad so important?"** *(Muktika 1.26 declaration & Advaita foundation)*
+- **"What does the scriptures talk about Kama, Krodha and the Gunas?"** *(Bhagavad Gita 3.37 & Arishadvarga)*
+- **"What is the difference between Advaita and Vishishtadvaita?"** *(The Vedanta Darshanas)*
 - **"What does scriptures say about beginning of the universe?"** *(Vedic creation, Nasadiya Sukta, and Srishti)*
 - **"What is the inner meaning of the Ramayana?"** *(Adhyatmic allegory of Rama, Sita, Ravana, and Hanuman)*
 - **"Explain the 5 jewels of Pancharatna Gita"** *(Bhagavad Gita, Vishnu Sahasranama, Bhishma Stavaraja, Anusmriti, Gajendra Moksha)*
 - **"What does the Ashtavakra Gita teach?"** *(The direct realization of Witness Consciousness)*
 - **"Vivekachudamani qualifications for liberation"** *(Sadhana Chatushtaya and Viveka)*
-- **"The 108 Upanishads and the Muktika Canon"** *(Upanishad Brahma Yogin Bhashya)*
-- **"What do scriptures teach about Karma and Reincarnation?"** *(Katha Upanishad, Gita, and Garuda Purana)*
-  `;
-  return { text: answer, cards: [] };
+    `;
+  }
+  return { text: answer, cards: dynamicMatches };
 }
 
 /* ========================================================
