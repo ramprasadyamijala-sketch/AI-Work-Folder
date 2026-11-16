@@ -1066,6 +1066,36 @@ body.copilot-open {
   color: #2ecc71;
   border: 1px solid rgba(46, 204, 113, 0.3);
 }
+.btn-council-toggle {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 176, 65, 0.4);
+  background: rgba(245, 176, 65, 0.12);
+  color: var(--gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+.btn-council-toggle:hover {
+  background: rgba(245, 176, 65, 0.25);
+  border-color: var(--gold);
+}
+.btn-council-toggle.active {
+  background: var(--gold);
+  color: #0b1118;
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(245, 176, 65, 0.4);
+}
+.routing-badge.council {
+  background: rgba(245, 176, 65, 0.2);
+  color: var(--gold);
+  border: 1px solid rgba(245, 176, 65, 0.5);
+  box-shadow: 0 0 8px rgba(245, 176, 65, 0.2);
+}
 .routing-badge.ollama {
   background: rgba(100, 181, 246, 0.15);
   color: #64b5f6;
@@ -1428,6 +1458,7 @@ body.copilot-open.copilot-expanded .app-container {
       </div>
     </div>
     <div class="copilot-actions">
+      <button class="btn-council-toggle active" id="btn-council-toggle" title="Toggle Karpathy-Style Darśana Council Multi-Perspective Analysis" onclick="toggleDarshanaCouncil()">🏛️ Council: ON</button>
       <button class="icon-btn" id="copilot-expand-btn" title="Toggle Full / Half Width" onclick="toggleCopilotWidth()">⛶</button>
       <button class="icon-btn" title="AI Settings & API Key" onclick="toggleCopilotSettings()">⚙️</button>
       <button class="icon-btn" title="Clear Chat History" onclick="clearCopilotChat()">🗑️</button>
@@ -1449,6 +1480,14 @@ body.copilot-open.copilot-expanded .app-container {
     <div class="form-group" id="group-api-key" style="display: none;">
       <label id="label-api-key">API Key:</label>
       <input type="password" id="setting-api-key" placeholder="Paste your API key here (saved locally)">
+    </div>
+    <div class="form-group" id="group-council-mode">
+      <label>🏛️ Darśana Council (Multi-Perspective AI Consensus):</label>
+      <select id="setting-council-mode" onchange="updateCouncilSetting()">
+        <option value="enabled">🏛️ Enabled (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis)</option>
+        <option value="disabled">Single Perspective (Standard Direct Response)</option>
+      </select>
+      <small style="color:var(--text-dim); display:block; font-size:11px; margin-top:3px;">Inspired by Andrej Karpathy's LLM Council: Evaluates your inquiry across 3 classical Darśanas, then delivers a harmonious Chairman verdict.</small>
     </div>
     <div class="form-group" id="group-routing-mode" style="display: none;">
       <label>Dynamic Complexity Routing:</label>
@@ -1934,7 +1973,8 @@ let copilotConfig = {
   provider: localStorage.getItem('copilot_provider') || 'offline',
   apiKey: localStorage.getItem('copilot_api_key') || '',
   apiUrl: localStorage.getItem('copilot_api_url') || '',
-  routingMode: localStorage.getItem('copilot_routing_mode') || 'auto'
+  routingMode: localStorage.getItem('copilot_routing_mode') || 'auto',
+  darshanaCouncil: localStorage.getItem('copilot_darshana_council') !== 'false'
 };
 
 function initCopilot() {
@@ -2040,6 +2080,41 @@ function toggleCopilot() {
       toggleHighlights();
     }
     document.getElementById('copilot-input').focus();
+  }
+}
+
+function toggleDarshanaCouncil() {
+  copilotConfig.darshanaCouncil = !copilotConfig.darshanaCouncil;
+  localStorage.setItem('copilot_darshana_council', copilotConfig.darshanaCouncil ? 'true' : 'false');
+  updateCouncilToggleUI();
+  showToast(copilotConfig.darshanaCouncil ? "🏛️ Darśana Council Multi-Perspective Mode Activated!" : "Standard Single Perspective Mode Activated");
+}
+
+function updateCouncilToggleUI() {
+  const btn = document.getElementById('btn-council-toggle');
+  const sel = document.getElementById('setting-council-mode');
+  if (btn) {
+    if (copilotConfig.darshanaCouncil) {
+      btn.classList.add('active');
+      btn.innerHTML = '🏛️ Council: ON';
+      btn.title = 'Darśana Council is ON (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis). Click to toggle.';
+    } else {
+      btn.classList.remove('active');
+      btn.innerHTML = '🏛️ Council: OFF';
+      btn.title = 'Darśana Council is OFF. Click to activate multi-perspective mode.';
+    }
+  }
+  if (sel) {
+    sel.value = copilotConfig.darshanaCouncil ? 'enabled' : 'disabled';
+  }
+}
+
+function updateCouncilSetting() {
+  const sel = document.getElementById('setting-council-mode');
+  if (sel) {
+    copilotConfig.darshanaCouncil = (sel.value === 'enabled');
+    localStorage.setItem('copilot_darshana_council', copilotConfig.darshanaCouncil ? 'true' : 'false');
+    updateCouncilToggleUI();
   }
 }
 
@@ -2208,7 +2283,7 @@ function sendCopilotMessage() {
       if (copilotConfig.provider === 'offline' || (!copilotConfig.apiKey && copilotConfig.provider === 'gemini')) {
         const response = generateOfflineResponse(text);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards, true, 'offline');
+        addCopilotMessage('assistant', response.text, response.cards, true, copilotConfig.darshanaCouncil ? 'council' : 'offline');
       } else if (copilotConfig.provider === 'gemini') {
         // Resolve Target Routing Tier
         let targetTier = 'flash';
@@ -2224,7 +2299,7 @@ function sendCopilotMessage() {
 
         const response = await callGeminiAPI(text, targetTier);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards, true, response.tier || targetTier);
+        addCopilotMessage('assistant', response.text, response.cards, true, copilotConfig.darshanaCouncil ? ('council-' + (response.tier || targetTier)) : (response.tier || targetTier));
       } else if (copilotConfig.provider === 'ollama') {
         const response = await callOllamaAPI(text);
         removeTypingIndicator();
@@ -2256,6 +2331,9 @@ function addCopilotMessage(role, text, cards = [], saveToStorage = true, tier = 
     const tierBadges = {
       'pro': '<span class="routing-badge pro" title="Routed to Gemini 1.5 Pro for deep metaphysical reasoning & comparative Bhashyas">🧠 Gemini Pro • Deep Scholar</span>',
       'flash': '<span class="routing-badge flash" title="Routed to Gemini 1.5 Flash for high-speed analysis">⚡ Gemini Flash • Fast Scholar</span>',
+      'council': '<span class="routing-badge council" title="Deliberated by Darśana Council (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis)">🏛️ Darśana Council</span>',
+      'council-pro': '<span class="routing-badge council" title="Deliberated by Darśana Council via Gemini 1.5 Pro">🏛️ Darśana Council • Pro</span>',
+      'council-flash': '<span class="routing-badge council" title="Deliberated by Darśana Council via Gemini 1.5 Flash">🏛️ Darśana Council • Flash</span>',
       'offline': '<span class="routing-badge offline" title="Answered by client-side Built-in Knowledge Engine">🕉️ Built-in Engine</span>',
       'ollama': '<span class="routing-badge ollama" title="Answered by Local Ollama instance">💻 Local AI</span>'
     };
@@ -3320,8 +3398,29 @@ async function callGeminiAPI(query, targetTier = 'flash') {
 
   const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
-  // Dynamic Scholarly System Prompt
-  const systemInstruction = isPro ?
+  // Dynamic Scholarly System Prompt with Karpathy-Style Darśana Council
+  const isCouncil = (copilotConfig.darshanaCouncil !== false);
+  const councilInstruction = isCouncil ? `
+YOU ARE PRESIDING OVER THE "DARŚANA COUNCIL" (Inspired by Andrej Karpathy's Multi-Agent Council architecture).
+For any inquiry, you must conduct a rigorous, respectful, multi-perspective examination synthesizing the great traditions of Sanātana Dharma:
+1. 🕉️ ADVAITA VEDĀNTA (Ādi Śaṅkara): Kevalādvaita, Vivartavāda (Māyā), Nirguṇa Brahman, and pure Jñāna / transcending the Guṇas (Guṇātīta).
+2. 🪷 VIŚIṢṬĀDVAITA & BHAKTI (Śrī Rāmānuja / Pañcarātra): Qualified Non-dualism, Śarīra-Śarīrī bhāva, Saguna Brahman, and sublimating desire/emotion into loving surrender (Śaraṇāgati / Prapatti).
+3. 🧘 SĀṄKHYA-YOGA & PSYCHOLOGICAL REALISM (Patañjali / Kaṭha Upaniṣad): The 3 Guṇas (Sattva, Rajas, Tamas), Buddhi-Manas chariot mastery, and Citta-Vṛtti-Nirodha.
+4. ⚖️ CHAIRMAN SYNTHESIS (Samanvaya & Verdict): The designated Chairman of the Council delivers the final harmonious verdict that integrates all perspectives, resolves apparent paradoxes, and attaches exact scriptural citations [1], [2], [3] from the archive context.` : ``;
+
+  const systemInstruction = (isPro ?
+    `You are Sanātana Copilot operating in Deep Scholar Mode (Jñāna-Ācārya).
+You are an authoritative Vedic preceptor and philosopher of Sanātana Dharma with mastery over the Prasthanatrayi (Upanishads, Bhagavad Gita, Brahma Sutras), the Six Darshanas, Agamas, and Acharya Bhashyas.
+${councilInstruction}
+For this inquiry:
+1. Conduct an exhaustive, rigorous examination.
+2. Quote relevant Sanskrit verses in original Devanagari script with exact English translation and profound spiritual significance.
+3. Cite specific corresponding texts from the archive context provided below with their paths.
+Maintain supreme spiritual reverence, metaphysical depth, and philosophical precision.` :
+    `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
+${councilInstruction}
+Speak with profound theological depth, spiritual reverence, contemplative majesty, and metaphysical clarity.
+Draw deeply upon Shruti, Smriti, Itihasa, and Acharya Bhashyas. Quote authentic Sanskrit shlokas in Devanagari with translations, explain inner significance, and cite matching archive documents.`);
     `You are Sanātana Copilot operating in Deep Scholar Mode (Jñāna-Ācārya).
 You are an authoritative Vedic preceptor and philosopher of Sanātana Dharma with mastery over the Prasthanatrayi (Upanishads, Bhagavad Gita, Brahma Sutras), the Six Darshanas, Agamas, and Acharya Bhashyas.
 For this complex metaphysical inquiry:

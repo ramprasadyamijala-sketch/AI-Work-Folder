@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sanatana-archive-v4';
+const CACHE_NAME = 'sanatana-archive-v5';
 const STATIC_ASSETS = [
   './',
   './index.html',
