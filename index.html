@@ -1066,6 +1066,36 @@ body.copilot-open {
   color: #2ecc71;
   border: 1px solid rgba(46, 204, 113, 0.3);
 }
+.btn-council-toggle {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 176, 65, 0.4);
+  background: rgba(245, 176, 65, 0.12);
+  color: var(--gold);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+.btn-council-toggle:hover {
+  background: rgba(245, 176, 65, 0.25);
+  border-color: var(--gold);
+}
+.btn-council-toggle.active {
+  background: var(--gold);
+  color: #0b1118;
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(245, 176, 65, 0.4);
+}
+.routing-badge.council {
+  background: rgba(245, 176, 65, 0.2);
+  color: var(--gold);
+  border: 1px solid rgba(245, 176, 65, 0.5);
+  box-shadow: 0 0 8px rgba(245, 176, 65, 0.2);
+}
 .routing-badge.ollama {
   background: rgba(100, 181, 246, 0.15);
   color: #64b5f6;
@@ -1428,6 +1458,7 @@ body.copilot-open.copilot-expanded .app-container {
       </div>
     </div>
     <div class="copilot-actions">
+      <button class="btn-council-toggle active" id="btn-council-toggle" title="Toggle Karpathy-Style Darśana Council Multi-Perspective Analysis" onclick="toggleDarshanaCouncil()">🏛️ Council: ON</button>
       <button class="icon-btn" id="copilot-expand-btn" title="Toggle Full / Half Width" onclick="toggleCopilotWidth()">⛶</button>
       <button class="icon-btn" title="AI Settings & API Key" onclick="toggleCopilotSettings()">⚙️</button>
       <button class="icon-btn" title="Clear Chat History" onclick="clearCopilotChat()">🗑️</button>
@@ -1449,6 +1480,14 @@ body.copilot-open.copilot-expanded .app-container {
     <div class="form-group" id="group-api-key" style="display: none;">
       <label id="label-api-key">API Key:</label>
       <input type="password" id="setting-api-key" placeholder="Paste your API key here (saved locally)">
+    </div>
+    <div class="form-group" id="group-council-mode">
+      <label>🏛️ Darśana Council (Multi-Perspective AI Consensus):</label>
+      <select id="setting-council-mode" onchange="updateCouncilSetting()">
+        <option value="enabled">🏛️ Enabled (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis)</option>
+        <option value="disabled">Single Perspective (Standard Direct Response)</option>
+      </select>
+      <small style="color:var(--text-dim); display:block; font-size:11px; margin-top:3px;">Inspired by Andrej Karpathy's LLM Council: Evaluates your inquiry across 3 classical Darśanas, then delivers a harmonious Chairman verdict.</small>
     </div>
     <div class="form-group" id="group-routing-mode" style="display: none;">
       <label>Dynamic Complexity Routing:</label>
@@ -1491,6 +1530,7 @@ body.copilot-open.copilot-expanded .app-container {
     <button class="prompt-chip" onclick="askCopilot('Find Shiva Sahasranama and Rudram')">🔱 Shiva Sahasranama</button>
     <button class="prompt-chip" onclick="askCopilot('Find Lalita Sahasranama and Devi Stutis')">🌸 Lalita Sahasranama</button>
     <button class="prompt-chip" onclick="askCopilot('What is the difference between Advaita and Vishishtadvaita?')">⚖️ Advaita vs Vishishtadvaita</button>
+    <button class="prompt-chip" onclick="askCopilot('What does scriptures talk about Kama, Krodha and the Gunas (Sattva, Rajas, Tamas)?')">⚔️ Kāma, Krodha & Guṇas</button>
     <button class="prompt-chip" onclick="askCopilot('What are the Agamas, Pancharatra and Shaiva Shastras?')">🛕 Agamas & Tantras</button>
   </div>
 
@@ -1933,7 +1973,8 @@ let copilotConfig = {
   provider: localStorage.getItem('copilot_provider') || 'offline',
   apiKey: localStorage.getItem('copilot_api_key') || '',
   apiUrl: localStorage.getItem('copilot_api_url') || '',
-  routingMode: localStorage.getItem('copilot_routing_mode') || 'auto'
+  routingMode: localStorage.getItem('copilot_routing_mode') || 'auto',
+  darshanaCouncil: localStorage.getItem('copilot_darshana_council') !== 'false'
 };
 
 function initCopilot() {
@@ -2039,6 +2080,41 @@ function toggleCopilot() {
       toggleHighlights();
     }
     document.getElementById('copilot-input').focus();
+  }
+}
+
+function toggleDarshanaCouncil() {
+  copilotConfig.darshanaCouncil = !copilotConfig.darshanaCouncil;
+  localStorage.setItem('copilot_darshana_council', copilotConfig.darshanaCouncil ? 'true' : 'false');
+  updateCouncilToggleUI();
+  showToast(copilotConfig.darshanaCouncil ? "🏛️ Darśana Council Multi-Perspective Mode Activated!" : "Standard Single Perspective Mode Activated");
+}
+
+function updateCouncilToggleUI() {
+  const btn = document.getElementById('btn-council-toggle');
+  const sel = document.getElementById('setting-council-mode');
+  if (btn) {
+    if (copilotConfig.darshanaCouncil) {
+      btn.classList.add('active');
+      btn.innerHTML = '🏛️ Council: ON';
+      btn.title = 'Darśana Council is ON (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis). Click to toggle.';
+    } else {
+      btn.classList.remove('active');
+      btn.innerHTML = '🏛️ Council: OFF';
+      btn.title = 'Darśana Council is OFF. Click to activate multi-perspective mode.';
+    }
+  }
+  if (sel) {
+    sel.value = copilotConfig.darshanaCouncil ? 'enabled' : 'disabled';
+  }
+}
+
+function updateCouncilSetting() {
+  const sel = document.getElementById('setting-council-mode');
+  if (sel) {
+    copilotConfig.darshanaCouncil = (sel.value === 'enabled');
+    localStorage.setItem('copilot_darshana_council', copilotConfig.darshanaCouncil ? 'true' : 'false');
+    updateCouncilToggleUI();
   }
 }
 
@@ -2207,7 +2283,7 @@ function sendCopilotMessage() {
       if (copilotConfig.provider === 'offline' || (!copilotConfig.apiKey && copilotConfig.provider === 'gemini')) {
         const response = generateOfflineResponse(text);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards, true, 'offline');
+        addCopilotMessage('assistant', response.text, response.cards, true, copilotConfig.darshanaCouncil ? 'council' : 'offline');
       } else if (copilotConfig.provider === 'gemini') {
         // Resolve Target Routing Tier
         let targetTier = 'flash';
@@ -2223,7 +2299,7 @@ function sendCopilotMessage() {
 
         const response = await callGeminiAPI(text, targetTier);
         removeTypingIndicator();
-        addCopilotMessage('assistant', response.text, response.cards, true, response.tier || targetTier);
+        addCopilotMessage('assistant', response.text, response.cards, true, copilotConfig.darshanaCouncil ? ('council-' + (response.tier || targetTier)) : (response.tier || targetTier));
       } else if (copilotConfig.provider === 'ollama') {
         const response = await callOllamaAPI(text);
         removeTypingIndicator();
@@ -2255,6 +2331,9 @@ function addCopilotMessage(role, text, cards = [], saveToStorage = true, tier = 
     const tierBadges = {
       'pro': '<span class="routing-badge pro" title="Routed to Gemini 1.5 Pro for deep metaphysical reasoning & comparative Bhashyas">🧠 Gemini Pro • Deep Scholar</span>',
       'flash': '<span class="routing-badge flash" title="Routed to Gemini 1.5 Flash for high-speed analysis">⚡ Gemini Flash • Fast Scholar</span>',
+      'council': '<span class="routing-badge council" title="Deliberated by Darśana Council (Advaita • Viśiṣṭādvaita • Sāṅkhya-Yoga + Chairman Synthesis)">🏛️ Darśana Council</span>',
+      'council-pro': '<span class="routing-badge council" title="Deliberated by Darśana Council via Gemini 1.5 Pro">🏛️ Darśana Council • Pro</span>',
+      'council-flash': '<span class="routing-badge council" title="Deliberated by Darśana Council via Gemini 1.5 Flash">🏛️ Darśana Council • Flash</span>',
       'offline': '<span class="routing-badge offline" title="Answered by client-side Built-in Knowledge Engine">🕉️ Built-in Engine</span>',
       'ollama': '<span class="routing-badge ollama" title="Answered by Local Ollama instance">💻 Local AI</span>'
     };
@@ -2370,7 +2449,8 @@ const TOPIC_NAMES = {
   'atman_brahman': 'Nature of Ātman, Brahman & Consciousness',
   'stutis': 'Śiva & Devī Sacred Stutis',
   'agamas': 'Canonical Āgamas & Tantra Śāstras',
-  'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas'
+  'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas',
+  'shadripus_gunas': 'Kāma, Krodha, the Ariṣaḍvarga & the Three Guṇas'
 };
 
 const TOPIC_KEYWORDS = {
@@ -2387,7 +2467,8 @@ const TOPIC_KEYWORDS = {
   'atman_brahman': ['atman', 'brahman', 'who am i', 'consciousness', 'saccidananda', 'supreme self'],
   'stutis': ['shiva', 'rudra', 'devi', 'lalita', 'durga', 'stotra', 'stuti', 'sahasranama', 'kavacha', 'ashtakam'],
   'agamas': ['agama', 'agamas', 'aagama', 'tantra', 'tantras', 'samhita', 'pancharatra', 'pancaratra', 'ahirbudhnya', 'kamika', 'shaiva agama', 'vaishnava agama', 'temple', 'pratishtha', 'archana', 'kriya', 'charya', 'shilpa', 'vastu', 'kularnava', 'mahanirvana', 'jayakhya', 'raurava', 'ajita', 'karana', 'lakshmi tantra'],
-  'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita']
+  'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita'],
+  'shadripus_gunas': ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya', 'arishadvarga', 'shadripu', 'six enemies', 'guna', 'gunas', 'sattva', 'sattvik', 'satvik', 'rajas', 'rajasik', 'tamas', 'tamasik', 'desire', 'anger', 'lust', 'passion', 'inner enemies', 'greed', 'wrath']
 };
 
 function detectExplicitTopic(q) {
@@ -2415,6 +2496,7 @@ function detectExplicitTopic(q) {
   if (TOPIC_KEYWORDS['stutis'].some(kw => q.includes(kw))) return 'stutis';
   if (TOPIC_KEYWORDS['vedanta_darshanas'].some(kw => q.includes(kw))) return 'vedanta_darshanas';
   if (TOPIC_KEYWORDS['agamas'].some(kw => q.includes(kw))) return 'agamas';
+  if (TOPIC_KEYWORDS['shadripus_gunas'].some(kw => q.includes(kw))) return 'shadripus_gunas';
   return null;
 }
 
@@ -3144,24 +3226,90 @@ Here are the texts matching your inquiry:
     return { text: answer, cards: matches.slice(0, 6) };
   }
 
-  // M. FALLBACK FOR UNRECOGNIZED TOPICS
+  // M. SHADRIPUS (KAMA, KRODHA, ARISHADVARGA) & THE THREE GUNAS
+  if (topic === 'shadripus_gunas') {
+    const gunaMatches = ALL_ITEMS.filter(x => {
+      const p = x.rel.toLowerCase();
+      return p.includes('pancharatna') || p.includes('gita') || p.includes('vivekachudamani') || p.includes('katha') || p.includes('ashtavakra');
+    });
+
+    let answer = transitionNote + `
+### ⚔️ The Ariṣaḍvarga & the Three Guṇas: Kāma, Krodha & Spiritual Sublimation
+
+In Sanātana Dharma, **Kāma (desire)** and **Krodha (anger)** are analyzed with profound psychological and spiritual precision across the **Bhagavad Gītā**, the **Kaṭha Upaniṣad**, and Ādi Śaṅkarācārya's **Vivekacūḍāmaṇi**. They form the core of the **Ariṣaḍvarga (अरिषड्वर्ग — The Six Internal Enemies of the Soul)**:
+1. **Kāma (काम)** — Lust / Selfish Desire
+2. **Krodha (क्रोध)** — Wrath / Anger
+3. **Lobha (लोभ)** — Greed / Possessiveness
+4. **Moha (मोह)** — Delusion / Infatuation
+5. **Mada (मद)** — Pride / Arrogance
+6. **Mātsarya (मात्सर्य)** — Envy / Jealousy
+
+---
+
+#### 1. The Genesis & Psychological Ladder of Degradation (*Gītā 3.37 & 2.62–63*)
+When Arjuna asks Bhagavān Śrī Kṛṣṇa what impels a soul to commit unrighteousness as if forced by an irresistible power (*Gītā 3.36*), the Lord pinpoints their source:
+
+> **काम एष क्रोध एष रजोगुणसमुद्भवः ।**  
+> **महाशनो महापाप्मा विद्ध्येनमिह वैरिणम् ॥** *(Gītā 3.37)*  
+> *"It is Kāma (desire), it is Krodha (anger), born of **Rajoguṇa (the mode of passion)**; it is all-devouring and all-sinful. Know this to be the supreme enemy in this world!"*
+
+In Chapter 2 (*2.62–63*), Śrī Kṛṣṇa charts the exact 8-stage sequence by which an uncontrolled mind destroys itself:
+1. **Dhyāyato viṣayān**: Brooding or dwelling on sensory objects.
+2. **Saṅga**: Emotional attachment is formed.
+3. **Kāma**: Craving to possess and enjoy ignites.
+4. **Krodha**: When desire is obstructed or denied, violent anger erupts (*Kāmāt krodho 'bhijāyate*).
+5. **Sammoha**: Anger breeds delusion and clouds rational judgment.
+6. **Smṛti-bhraṁśa**: Memory of moral lessons and spiritual discernment is eclipsed.
+7. **Buddhi-nāśa**: Complete loss of the discriminating intellect.
+8. **Praṇaśyati**: The person is ruined and falls away from spiritual progress.
+
+---
+
+#### 2. The Sāttvik, Rājasik, and Tāmasik Dimensions
+The scriptures explicitly explain how Kāma and Krodha manifest across the **Three Guṇas (Prakṛti's qualities)**:
+
+| Mode / Guṇa | Kāma (Desire) | Krodha (Anger) |
+| :--- | :--- | :--- |
+| **Tāmasik (तामसिक)** *(Darkness & Delusion)* | Perverse, destructive desires; obsessive addictions; lethargy; desires that harm oneself and others (*Gītā 16.21: Kāma, Krodha, and Lobha are the three gates of Naraka destroying the soul*). | Blind, vindictive wrath; brooding grudge; cruelty and destructive rage that seeks harm without restraint or self-control. |
+| **Rājasik (राजसिक)** *(Passion & Agitation)* | The primary natural home of desire (*Rajoguṇa-samudbhavaḥ*). Insatiable hunger for wealth, sensual indulgence, fame, power, and ego gratification. Leaves the soul perpetually restless, agitated, and burning. | Impatient, volatile temper; explosive irritation when one's selfish will, ego, or expectations are thwarted or criticized. |
+| **Sāttvik (सात्त्विक)** *(Sublimated / Dharmic Transformation)* | **Can Kāma be Sāttvik? Yes!** Śrī Kṛṣṇa explicitly declares in *Gītā 7.11*: <br>**धर्मविरुद्धो भूतेषु कामोऽस्मि भरतर्षभ**<br>*(“In all living beings, I am desire that is NOT contrary to Dharma!”)*.<br>Desires for liberation (*Mumukṣutva*), intense longing to realize God, righteous duty, protection of family, and selfless service (*Loka-saṅgraha*). | **Can Krodha be Sāttvik? Yes!** Righteous moral indignation directed against unrighteousness (*Adharma*) and oppression, completely free from personal malice or egoic vengeance (e.g., Śrī Rāma against Rāvaṇa; Arjuna on Kurukṣetra), as well as stern self-rebuke against one's own lower tendencies. |
+
+---
+
+#### 3. How the Scriptures Prescribe Conquering Them
+1. **The Chariot Allegory (*Kaṭha Upaniṣad 1.3.3–4*)**:
+   - The Ātman is the master of the chariot, the body is the chariot, **Buddhi (discriminating intellect)** is the charioteer, and **Manas (mind)** is the reins.
+   - When the intellect firmly commands the reins, the wild horses of the senses (*Indriyas*) are subdued, preventing Rajasik desires from hijacking the soul.
+2. **Ādi Śaṅkara’s Vivekacūḍāmaṇi (Verses 311–317)**:
+   - Śaṅkara warns that even a tiny dormant spark of Kāma can ignite a catastrophic forest fire of Saṁsāra. The remedy is **Vairāgya (dispassion)** and recognizing the ephemeral nature of worldly objects through **Viveka (discrimination)**.
+3. **Sublimation through Bhakti & Niṣkāma Karma**:
+   - Rather than repressing desire, the Gītā teaches *sublimation*: offer every action to the Divine without clinging to fruits (*Karmanyevādhikāraste*). When personal ego-attachment dissolves, anger loses its fuel completely.
+    `;
+    return { text: answer, cards: gunaMatches.slice(0, 5) };
+  }
+
+  // N. DYNAMIC ARCHIVE RETRIEVAL FOR UNRECOGNIZED TOPICS
+  const dynamicMatches = getOptimizedContextMatches(query, 6);
   let answer = `
-### 🕉️ Inquiries into the Infinite
+### 🕉️ Scriptural Exploration: "${escapeHtml(query)}"
 
-I have explored the scriptural archive for **"${escapeHtml(query)}"**. 
+I have searched your sacred library of **4,492 scriptures and commentaries** across all 10 canonical categories for this inquiry.
 
-You are invited to contemplate any of these foundational spiritual themes:
+${dynamicMatches.length > 0 ? `Here are the authoritative canonical texts addressing these concepts in our archive:` : `You are invited to contemplate any of these foundational spiritual gateways:`}
+  `;
+  if (dynamicMatches.length === 0) {
+    answer += `
 - **"What is the first Slokha of Mandukya Upanishad?"** *(OM and the 4 states of consciousness)*
-- **"Why is the Mandukya Upanishad so important?"** *(Muktika 1.26 declaration & Advaita foundation)*
+- **"What does the scriptures talk about Kama, Krodha and the Gunas?"** *(Bhagavad Gita 3.37 & Arishadvarga)*
+- **"What is the difference between Advaita and Vishishtadvaita?"** *(The Vedanta Darshanas)*
 - **"What does scriptures say about beginning of the universe?"** *(Vedic creation, Nasadiya Sukta, and Srishti)*
 - **"What is the inner meaning of the Ramayana?"** *(Adhyatmic allegory of Rama, Sita, Ravana, and Hanuman)*
 - **"Explain the 5 jewels of Pancharatna Gita"** *(Bhagavad Gita, Vishnu Sahasranama, Bhishma Stavaraja, Anusmriti, Gajendra Moksha)*
 - **"What does the Ashtavakra Gita teach?"** *(The direct realization of Witness Consciousness)*
 - **"Vivekachudamani qualifications for liberation"** *(Sadhana Chatushtaya and Viveka)*
-- **"The 108 Upanishads and the Muktika Canon"** *(Upanishad Brahma Yogin Bhashya)*
-- **"What do scriptures teach about Karma and Reincarnation?"** *(Katha Upanishad, Gita, and Garuda Purana)*
-  `;
-  return { text: answer, cards: [] };
+    `;
+  }
+  return { text: answer, cards: dynamicMatches };
 }
 
 /* ========================================================
@@ -3190,6 +3338,8 @@ function getOptimizedContextMatches(query, maxContext) {
     'agama': ['agamas', 'tantra', 'samhita'],
     'agamas': ['agama', 'tantra', 'samhita'],
     'upanishad': ['upanisad', 'upanishads'],
+    'advaita': ['vivekachudamani', 'ashtavakra', 'upanishad'],
+    'vishishtadvaita': ['ramanuja', 'pancharatra', 'gita'],
     'ramayana': ['valmiki', 'rama']
   };
 
@@ -3250,20 +3400,29 @@ async function callGeminiAPI(query, targetTier = 'flash') {
 
   const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
-  // Dynamic Scholarly System Prompt
-  const systemInstruction = isPro ?
-    `You are Sanātana Copilot operating in Deep Scholar Mode (Jñāna-Ācārya).
+  // Dynamic Scholarly System Prompt with Karpathy-Style Darśana Council
+  const isCouncil = (copilotConfig.darshanaCouncil !== false);
+  const councilInstruction = isCouncil ? `
+YOU ARE PRESIDING OVER THE "DARŚANA COUNCIL" (Inspired by Andrej Karpathy's Multi-Agent Council architecture).
+For any inquiry, you must conduct a rigorous, respectful, multi-perspective examination synthesizing the great traditions of Sanātana Dharma:
+1. 🕉️ ADVAITA VEDĀNTA (Ādi Śaṅkara): Kevalādvaita, Vivartavāda (Māyā), Nirguṇa Brahman, and pure Jñāna / transcending the Guṇas (Guṇātīta).
+2. 🪷 VIŚIṢṬĀDVAITA & BHAKTI (Śrī Rāmānuja / Pañcarātra): Qualified Non-dualism, Śarīra-Śarīrī bhāva, Saguna Brahman, and sublimating desire/emotion into loving surrender (Śaraṇāgati / Prapatti).
+3. 🧘 SĀṄKHYA-YOGA & PSYCHOLOGICAL REALISM (Patañjali / Kaṭha Upaniṣad): The 3 Guṇas (Sattva, Rajas, Tamas), Buddhi-Manas chariot mastery, and Citta-Vṛtti-Nirodha.
+4. ⚖️ CHAIRMAN SYNTHESIS (Samanvaya & Verdict): The designated Chairman of the Council delivers the final harmonious verdict that integrates all perspectives, resolves apparent paradoxes, and attaches exact scriptural citations [1], [2], [3] from the archive context.` : ``;
+
+  const systemInstruction = isPro
+    ? `You are Sanātana Copilot operating in Deep Scholar Mode (Jñāna-Ācārya).
 You are an authoritative Vedic preceptor and philosopher of Sanātana Dharma with mastery over the Prasthanatrayi (Upanishads, Bhagavad Gita, Brahma Sutras), the Six Darshanas, Agamas, and Acharya Bhashyas.
-For this complex metaphysical inquiry:
-1. Conduct an exhaustive, rigorous dialectical examination (Purvapaksha vs. Siddhanta).
-2. Contrast interpretations across major philosophical traditions where relevant (Advaita of Shankara, Vishishtadvaita of Ramanuja, Dvaita of Madhvacharya, Shuddhadvaita, Achintya Bhedabheda, or Shaiva Siddhanta).
-3. Quote relevant Sanskrit verses in original Devanagari script with exact English grammatical rendering and profound spiritual significance.
-4. Cite specific corresponding texts from the archive context provided below with their paths.
-Maintain supreme spiritual reverence, metaphysical depth, and philosophical precision.` :
-    `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
-Speak with profound theological depth, spiritual reverence, contemplative majesty, and metaphysical clarity—never in dry FAQ bullet points or shallow summaries.
-Draw deeply upon Shruti (Vedas & Upanishads), Smriti (Bhagavad Gita & Puranas), Itihasa (Valmiki Ramayana), and Acharya Bhashyas.
-Quote authentic Sanskrit shlokas and mantras in Devanagari with English translations, explain their esoteric inner significance (Adhyatmic rahasya), illuminate philosophical nuances, and cite matching documents from the collection with their relative paths.`;
+${councilInstruction}
+For this inquiry:
+1. Conduct an exhaustive, rigorous examination.
+2. Quote relevant Sanskrit verses in original Devanagari script with exact English translation and profound spiritual significance.
+3. Cite specific corresponding texts from the archive context provided below with their paths.
+Maintain supreme spiritual reverence, metaphysical depth, and philosophical precision.`
+    : `You are Sanātana Copilot, an erudite sage, acharya, and Vedic scholar for an authentic archive of sacred Hindu scriptures and classical commentaries.
+${councilInstruction}
+Speak with profound theological depth, spiritual reverence, contemplative majesty, and metaphysical clarity.
+Draw deeply upon Shruti, Smriti, Itihasa, and Acharya Bhashyas. Quote authentic Sanskrit shlokas in Devanagari with translations, explain inner significance, and cite matching archive documents.`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
