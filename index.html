@@ -2481,7 +2481,7 @@ const TOPIC_NAMES = {
 };
 
 const TOPIC_KEYWORDS = {
-  'mandukya': ['maduk', 'manduk', 'mandok', 'maanduk', 'māṇḍūk', 'manduka', 'mandukta', 'madukta', 'turiya', 'aum', 'omkara', 'gaudapada', 'atharvaveda', 'ayam atma brahma', 'vaishvanara', 'taijasa', 'prajna'],
+  'mandukya': ['maduk', 'manduk', 'mandok', 'maanduk', 'māṇḍūk', 'manduka', 'mandukta', 'madukta', 'turiya', 'aum', 'omkara', 'gaudapada', 'atharvaveda', 'ayam atma brahma', 'vaishvanara', 'taijasa', 'prajna', 'jagrut', 'jagrat', 'swapna', 'svapna', 'sushupti', 'avastha', 'avasthas', 'avasthatraya', 'waking', 'dreaming', 'deep sleep'],
   'isha': ['isha upanishad', 'ishavasya', 'isavasya', 'eesha', 'isavasyopanishad'],
   'katha': ['katha upanishad', 'kathopanishad', 'nachiketa', 'yama', 'shreyas', 'preyas'],
   'upanishads_general': ['upanishad', 'upanishat', 'muktika', 'adyar', 'vedanta', 'mahavakya', 'dasonapanishads'],
@@ -2575,12 +2575,11 @@ function generateOfflineResponse(query, forceContinue = false, forceNew = false)
       // 3. NO EXPLICIT TOPIC DETECTED, BUT A PREVIOUS TOPIC IS ACTIVE
       // Check if it is a clear grammatical follow-up
       const clearFollowUps = [
-        'more', 'elaborate', 'explain', 'why', 'how', 'tell me',
-        'second', 'third', 'fourth', 'verse', 'sloka', 'shloka', 'mantra',
-        'meaning', 'significance', 'important', 'importance', 'continue',
-        'summarize', 'what does this mean', 'who is', 'teach me'
+        'more', 'elaborate', 'continue', 'summarize',
+        'second', 'third', 'fourth', 'what does this mean',
+        'explain more', 'tell me more', 'go deeper'
       ];
-      const independentTopics = ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'ramayana', 'gita', 'upanishad', 'karma', 'creation', 'shiva', 'devi'];
+      const independentTopics = ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'ramayana', 'gita', 'upanishad', 'karma', 'creation', 'shiva', 'devi', 'jagrut', 'jagrat', 'swapna', 'sushupti', 'avastha', 'kama', 'krodha', 'gunas'];
       const hasIndependentSubject = independentTopics.some(sub => q.includes(sub));
       const isClearFollowUp = !hasIndependentSubject && clearFollowUps.some(cue => q.includes(cue));
 
