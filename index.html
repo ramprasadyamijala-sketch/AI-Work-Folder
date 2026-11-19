@@ -1501,6 +1501,15 @@ body.copilot-open.copilot-expanded .app-container {
       <label>API Endpoint URL:</label>
       <input type="text" id="setting-api-url" placeholder="http://localhost:11434/v1/chat/completions">
     </div>
+    <div class="form-group" id="group-ollama-model" style="display: none; margin-top: 10px;">
+      <label>Local Ollama Model (Recommended for 24GB Mac: qwen2.5:14b):</label>
+      <input type="text" id="setting-ollama-model" placeholder="qwen2.5:14b">
+    </div>
+    <div class="form-group" id="group-rag-url" style="margin-top: 10px;">
+      <label>Local Hybrid RAG Server URL (Page-Level Retrieval):</label>
+      <input type="text" id="setting-rag-url" placeholder="http://localhost:8000">
+      <small style="color:var(--text-dim); display:block; font-size:11px; margin-top:3px;">When rag_engine/server.py is running locally, Copilot retrieves verbatim PDF page chunks + #page=N citations.</small>
+    </div>
     <div class="form-group" id="group-storage-url" style="margin-top: 10px;">
       <label>PDF Cloud Bucket / CDN Base URL:</label>
       <input type="text" id="setting-storage-url" placeholder="https://storage.googleapis.com/sanatanawikiproject">
@@ -1974,13 +1983,19 @@ let copilotConfig = {
   apiKey: localStorage.getItem('copilot_api_key') || '',
   apiUrl: localStorage.getItem('copilot_api_url') || '',
   routingMode: localStorage.getItem('copilot_routing_mode') || 'auto',
-  darshanaCouncil: localStorage.getItem('copilot_darshana_council') !== 'false'
+  darshanaCouncil: localStorage.getItem('copilot_darshana_council') !== 'false',
+  ollamaModel: localStorage.getItem('copilot_ollama_model') || 'qwen2.5:14b',
+  ragUrl: localStorage.getItem('copilot_rag_url') || 'http://localhost:8000'
 };
 
 function initCopilot() {
   document.getElementById('setting-provider').value = copilotConfig.provider;
   document.getElementById('setting-api-key').value = copilotConfig.apiKey;
   document.getElementById('setting-api-url').value = copilotConfig.apiUrl;
+  const ollamaModelEl = document.getElementById('setting-ollama-model');
+  if (ollamaModelEl) ollamaModelEl.value = copilotConfig.ollamaModel;
+  const ragUrlEl = document.getElementById('setting-rag-url');
+  if (ragUrlEl) ragUrlEl.value = copilotConfig.ragUrl;
   const routingSelect = document.getElementById('setting-routing-mode');
   if (routingSelect) routingSelect.value = copilotConfig.routingMode;
   const storageInput = document.getElementById('setting-storage-url');
@@ -2136,6 +2151,8 @@ function updateProviderUI() {
   const modeTag = document.getElementById('copilot-mode-label');
 
   const routingGroup = document.getElementById('group-routing-mode');
+  const gOm = document.getElementById('group-ollama-model');
+  if (gOm) gOm.style.display = (prov === 'ollama') ? 'block' : 'none';
 
   if (prov === 'offline') {
     keyGroup.style.display = 'none';
@@ -2191,6 +2208,16 @@ function saveCopilotSettings() {
 
   localStorage.setItem('copilot_provider', copilotConfig.provider);
   localStorage.setItem('copilot_api_key', copilotConfig.apiKey);
+  const ollamaModelEl = document.getElementById('setting-ollama-model');
+  if (ollamaModelEl) {
+    copilotConfig.ollamaModel = ollamaModelEl.value.trim() || 'qwen2.5:14b';
+    localStorage.setItem('copilot_ollama_model', copilotConfig.ollamaModel);
+  }
+  const ragUrlEl = document.getElementById('setting-rag-url');
+  if (ragUrlEl) {
+    copilotConfig.ragUrl = ragUrlEl.value.trim() || 'http://localhost:8000';
+    localStorage.setItem('copilot_rag_url', copilotConfig.ragUrl);
+  }
   localStorage.setItem('copilot_api_url', copilotConfig.apiUrl);
 
   updateProviderUI();
@@ -2367,7 +2394,7 @@ function addCopilotMessage(role, text, cards = [], saveToStorage = true, tier = 
               <span class="fn-title">${escapeHtml(c.title)}</span>
               <span class="fn-meta">(${c.size_fmt}, ${c.lang})</span>
               <span class="fn-actions">
-                <a href="${resolvePdfUrl(c.rel)}" target="_blank" class="fn-link" title="Open PDF">Open PDF ↗</a>
+                <a href="${resolvePdfUrl(c.rel)}${c.page_start ? `#page=${c.page_start}` : ''}" target="_blank" class="fn-link" title="Open PDF">${c.page_start ? `Open p.${c.page_start} ↗` : 'Open PDF ↗'}</a>
                 <button class="fn-copy" onclick="copyPath('${c.rel}')" title="Copy Path">Copy</button>
               </span>
             </li>
@@ -3386,6 +3413,38 @@ function getOptimizedContextMatches(query, maxContext) {
   return scored.slice(0, maxContext).map(x => x.item);
 }
 
+async function fetchHybridRagContext(query, topK = 6) {
+  const ragBase = (copilotConfig.ragUrl || '').trim().replace(/\/+$/, '');
+  if (!ragBase) return null;
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 1800);
+    const res = await fetch(`${ragBase}/retrieve`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, top_k: topK, candidate_k: 30 }),
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.chunks || data.chunks.length === 0) return null;
+    const cards = data.chunks.map(ch => ({
+      title: `${ch.title}${ch.section ? ' — ' + ch.section : ''}`,
+      rel: ch.rel,
+      page_start: ch.page_start,
+      size_fmt: `p.${ch.page_start}`,
+      lang: ch.cat
+    }));
+    const contextStr = data.chunks.map((ch, idx) =>
+      `[${idx + 1}] ${ch.title} (${ch.rel}, Page ${ch.page_start}${ch.section ? ', ' + ch.section : ''})\nExcerpt: "${ch.text.slice(0, 1200)}"`
+    ).join('\n\n---\n\n');
+    return { cards, contextStr, isFullText: true };
+  } catch (e) {
+    return null;
+  }
+}
+
 async function callGeminiAPI(query, targetTier = 'flash') {
   const apiKey = copilotConfig.apiKey;
   if (!apiKey) throw new Error("Gemini API Key is not set in settings");
@@ -3396,9 +3455,11 @@ async function callGeminiAPI(query, targetTier = 'flash') {
   const maxContext = isPro ? 20 : 10;
   const historyCount = isPro ? -12 : -8;
 
-  const contextMatches = getOptimizedContextMatches(query, maxContext);
-
-  const contextStr = contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
+  const ragRes = await fetchHybridRagContext(query, isPro ? 8 : 5);
+  const contextMatches = ragRes ? ragRes.cards : getOptimizedContextMatches(query, maxContext);
+  const contextStr = ragRes
+    ? ragRes.contextStr
+    : contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
 
   // Dynamic Scholarly System Prompt with Karpathy-Style Darśana Council
   const isCouncil = (copilotConfig.darshanaCouncil !== false);
@@ -3487,31 +3548,38 @@ Draw deeply upon Shruti, Smriti, Itihasa, and Acharya Bhashyas. Quote authentic 
 
 async function callOllamaAPI(query) {
   const url = copilotConfig.apiUrl || "http://localhost:11434/v1/chat/completions";
-  const contextMatches = getOptimizedContextMatches(query, 10);
+  const modelName = copilotConfig.ollamaModel || "qwen2.5:14b";
+  const ragRes = await fetchHybridRagContext(query, 6);
+  const contextMatches = ragRes ? ragRes.cards : getOptimizedContextMatches(query, 8);
+  const contextStr = ragRes
+    ? ragRes.contextStr
+    : contextMatches.map(m => `- [${m.title}] (${m.rel}) | Size: ${m.size_fmt} | Lang: ${m.lang}`).join('\n');
+
+  const systemPrompt = ragRes
+    ? "You are Sanātana Scholar. Answer STRICTLY from the provided scriptural excerpts. Quote verbatim Sanskrit/English passages and cite sources inline as [1], [2], etc. If the excerpts do not contain the answer, state clearly what is missing."
+    : "You are Sanātana Copilot, a scholar of Sanātana Dharma. Answer with reverence and cite matching archive documents from the provided context.";
 
   const res = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: "llama3",
+      model: modelName,
       messages: [
-        { role: "system", content: `${systemInstruction}
-
-Archive Documents Context:
-${contextStr}` },
-        ...copilotHistory.slice(-10).map(m => ({
+        { role: "system", content: `${systemPrompt}\n\nScriptural Context:\n${contextStr}` },
+        ...copilotHistory.slice(-8).map(m => ({
           role: m.role === 'user' ? 'user' : 'assistant',
           content: m.text
         })),
         { role: "user", content: query }
-      ]
+      ],
+      temperature: 0.2
     })
   });
 
   if (!res.ok) throw new Error("Could not connect to Ollama at " + url);
   const data = await res.json();
   const text = data.choices?.[0]?.message?.content || "No response received.";
-  return { text, cards: contextMatches.slice(0, 4) };
+  return { text, cards: contextMatches.slice(0, 6) };
 }
 
 async function callOpenAICompatibleAPI(query) {
