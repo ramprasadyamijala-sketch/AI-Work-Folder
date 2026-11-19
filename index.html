@@ -2477,7 +2477,8 @@ const TOPIC_NAMES = {
   'stutis': 'Śiva & Devī Sacred Stutis',
   'agamas': 'Canonical Āgamas & Tantra Śāstras',
   'vedanta_darshanas': 'Advaita vs. Viśiṣṭādvaita & the Vedānta Darśanas',
-  'shadripus_gunas': 'Kāma, Krodha, the Ariṣaḍvarga & the Three Guṇas'
+  'shadripus_gunas': 'Kāma, Krodha, the Ariṣaḍvarga & the Three Guṇas',
+  'chakras_subtle_body': 'The 7 Chakras, Kuṇḍalinī & the Subtle Body (Sūkṣma Śarīra)'
 };
 
 const TOPIC_KEYWORDS = {
@@ -2495,7 +2496,8 @@ const TOPIC_KEYWORDS = {
   'stutis': ['shiva', 'rudra', 'devi', 'lalita', 'durga', 'stotra', 'stuti', 'sahasranama', 'kavacha', 'ashtakam'],
   'agamas': ['agama', 'agamas', 'aagama', 'tantra', 'tantras', 'samhita', 'pancharatra', 'pancaratra', 'ahirbudhnya', 'kamika', 'shaiva agama', 'vaishnava agama', 'temple', 'pratishtha', 'archana', 'kriya', 'charya', 'shilpa', 'vastu', 'kularnava', 'mahanirvana', 'jayakhya', 'raurava', 'ajita', 'karana', 'lakshmi tantra'],
   'vedanta_darshanas': ['advaita', 'vishishtadvaita', 'visistadvaita', 'dvaita', 'shankaracharya', 'shankara', 'ramanuja', 'ramanujacharya', 'madhva', 'madhvacharya', 'darshana', 'darshanas', 'bhedabheda', 'mayavada', 'shuddhadvaita', 'nirguna', 'saguna', 'non-dualism', 'qualified non-dualism', 'dualism', 'difference between advaita'],
-  'shadripus_gunas': ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya', 'arishadvarga', 'shadripu', 'six enemies', 'guna', 'gunas', 'sattva', 'sattvik', 'satvik', 'rajas', 'rajasik', 'tamas', 'tamasik', 'desire', 'anger', 'lust', 'passion', 'inner enemies', 'greed', 'wrath']
+  'shadripus_gunas': ['kama', 'krodha', 'lobha', 'moha', 'mada', 'matsarya', 'arishadvarga', 'shadripu', 'six enemies', 'guna', 'gunas', 'sattva', 'sattvik', 'satvik', 'rajas', 'rajasik', 'tamas', 'tamasik', 'desire', 'anger', 'lust', 'passion', 'inner enemies', 'greed', 'wrath'],
+  'chakras_subtle_body': ['chakra', 'chakras', '7 chakras', 'seven chakras', 'kundalini', 'sushumna', 'ida', 'pingala', 'muladhara', 'svadhisthana', 'manipura', 'anahata', 'vishuddha', 'ajna', 'sahasrara', 'subtle body', 'suttle body', 'sukshma sharira', 'sharira traya', 'three bodies', 'pancha kosha', 'kosha', 'nadi', 'nadis', 'prana']
 };
 
 function detectExplicitTopic(q) {
@@ -2524,6 +2526,7 @@ function detectExplicitTopic(q) {
   if (TOPIC_KEYWORDS['vedanta_darshanas'].some(kw => q.includes(kw))) return 'vedanta_darshanas';
   if (TOPIC_KEYWORDS['agamas'].some(kw => q.includes(kw))) return 'agamas';
   if (TOPIC_KEYWORDS['shadripus_gunas'].some(kw => q.includes(kw))) return 'shadripus_gunas';
+  if (TOPIC_KEYWORDS['chakras_subtle_body'].some(kw => q.includes(kw))) return 'chakras_subtle_body';
   return null;
 }
 
@@ -3314,12 +3317,54 @@ The scriptures explicitly explain how Kāma and Krodha manifest across the **Thr
     return { text: answer, cards: gunaMatches.slice(0, 5) };
   }
 
+  // M2. SEVEN CHAKRAS, KUNDALINI & SUBTLE BODY (SUKSHMA SHARIRA)
+  if (topic === 'chakras_subtle_body') {
+    const chakraMatches = ALL_ITEMS.filter(x => {
+      const p = (x.title + ' ' + x.rel).toLowerCase();
+      return p.includes('kularnava') || p.includes('mahanirvana') || p.includes('vivekachudamani') || p.includes('yoga') || p.includes('lalita');
+    });
+
+    let answer = transitionNote + `
+### 🪷 The Seven Chakras, Kuṇḍalinī & the Subtle Body (*Sūkṣma Śarīra*)
+
+Across the **Yoga Upaniṣads** (*Yoga-kuṇḍalinī, Yoga-cūḍāmaṇi, Dhyānabindu*), the **Śākta & Śaiva Āgamas** (*Kularṇava Tantra, Mahānirvāṇa Tantra*), and **Ādi Śaṅkara’s Vivekacūḍāmaṇi**, the human constitution is mapped into **Three Bodies (*Śarīra Traya*)** and **Five Sheaths (*Pañca Kośas*)**, animated by the seven energy centers (*Chakras*):
+
+---
+
+#### 1. The Three Bodies (*Śarīra Traya*) & Subtle Body (*Sūkṣma Śarīra*)
+1. **Sthūla Śarīra (Gross Physical Body):** Born of the five gross elements (*Mahābhūtas*), experienced in the waking state (*Jāgrat*).
+2. **Sūkṣma / Liṅga Śarīra (Subtle Body):** Composed of 17–19 subtle principles: the **5 Prāṇas** (vital airs), **5 Jñānendriyas** (subtle senses of perception), **5 Karmendriyas** (organs of action), **Manas** (mind), **Buddhi** (intellect), **Chitta**, and **Ahaṅkāra**. The **Chakras** and **72,000 Nāḍīs** (*Iḍā, Piṅgalā, Suṣumnā*) belong to this subtle *Prāṇamaya / Manomaya* body, not physical anatomy.
+3. **Kāraṇa Śarīra (Causal Body):** The seed-form of *Avidyā* (ignorance) experienced in deep sleep (*Suṣupti*).
+
+---
+
+#### 2. The Seven Primary Chakras Along the *Suṣumnā Nāḍī*
+| Chakra | Sanskrit | Location & Element | Bīja Mantra | Spiritual / Subtle Function |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Mūlādhāra** | मूलाधार | Base of spine (*Earth / Pṛthvī*) | **लां (LAṀ)** | Seat of dormant **Kuṇḍalinī Śakti** (*3½ coils*); grounding, survival, stability. |
+| **2. Svādhiṣṭhāna** | स्वाधिष्ठान | Sacral / pelvic (*Water / Āpas*) | **वां (VAṀ)** | Fluidity, emotional currents, creative energy, subconscious impressions (*Vāsanās*). |
+| **3. Maṇipūra** | मणिपूर | Navel / solar plexus (*Fire / Agni*) | **रां (RAṀ)** | *Samāna Prāṇa*, inner fire (*Tapas*), willpower, transformation. |
+| **4. Anāhata** | अनाहत | Heart center (*Air / Vāyu*) | **यं (YAṀ)** | Unstruck cosmic sound (*Anāhata Nāda*), compassion, pure *Bhakti*, seat of *Jīvātman* meditation. |
+| **5. Viśuddha** | विशुद्ध | Throat (*Ether / Ākāśa*) | **हं (HAṀ)** | Purification (*Amṛta*), sacred speech (*Vāk*), truth, inner listening. |
+| **6. Ājñā** | आज्ञा | Between eyebrows (*Mind / Mahat*) | **ॐ (OṀ)** | Meeting point of *Iḍā, Piṅgalā, Suṣumnā* (*Triveṇī*); inner vision (*Viveka*), command center. |
+| **7. Sahasrāra** | सहस्रार | Crown of head (*Transcendent*) | **Silence / OṀ** | Thousand-petaled lotus beyond elements; union of **Śiva and Śakti** (*Turīya* / *Samādhi*). |
+
+---
+
+#### 3. Vedāntic vs. Tantric Perspective (*Darśana Council Synthesis*)
+- **Tāntrika & Yoga View (*Kularṇava / Yoga Upaniṣads*):** Awakens *Kuṇḍalinī* through *Prāṇāyāma*, *Mantras*, and *Dhyāna* so *Prāṇa* ascends the central *Suṣumnā* channel to *Sahasrāra*.
+- **Advaita Vedānta (*Vivekacūḍāmaṇi*):** Reminds the seeker that **Ātman** is the silent Witness (*Sākṣī*) of all three bodies (*Sthūla, Sūkṣma, Kāraṇa*) and all five sheaths (*Pañca Kośas*); subtle experiences are real at the *Vyāvahārika* level, yet liberation (*Mokṣa*) comes from realizing you are pure Awareness beyond the *Sūkṣma Śarīra*.
+    `;
+    return { text: answer, cards: chakraMatches.slice(0, 5) };
+  }
+
   // N. DYNAMIC ARCHIVE RETRIEVAL FOR UNRECOGNIZED TOPICS
   const dynamicMatches = getOptimizedContextMatches(query, 6);
   let answer = `
 ### 🕉️ Scriptural Exploration: "${escapeHtml(query)}"
 
 I have searched your sacred library of **4,492 scriptures and commentaries** across all 10 canonical categories for this inquiry.
+*(Note: You are currently in **Built-in Offline Mode**, which searches metadata and answers core pre-indexed topics. For full custom AI synthesis from PDF pages on any topic, switch **⚙️ Settings → AI Mode** to **Local Ollama (`qwen2.5:14b`)** or **Google Gemini API**.)*
 
 ${dynamicMatches.length > 0 ? `Here are the authoritative canonical texts addressing these concepts in our archive:` : `You are invited to contemplate any of these foundational spiritual gateways:`}
   `;
